@@ -65,6 +65,7 @@
             await liff.init({ liffId: LIFF_ID });
             if (!liff.isLoggedIn()) { liff.login(); return; }
             const profile = await liff.getProfile();
+            alert("ID ของคุณคือ: " + profile.userId);
             
             const res = await fetch(`${GAS_URL}?uid=${profile.userId}`, { redirect: 'follow' });
             driver = await res.json();
@@ -123,3 +124,4 @@
 </script>
 </body>
 </html>
+
