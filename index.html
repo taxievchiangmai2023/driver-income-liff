@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบส่งยอดรายได้</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding-bottom: 50px; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-submit { background-color: #00b900; color: white; border: none; font-weight: bold; }
+        .btn-submit:hover { background-color: #009900; color: white; }
+        .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; justify-content:center; align-items:center; }
+    </style>
+</head>
+<body>
+    <div id="loader" class="loading-overlay">
+        <div class="spinner-border text-success"></div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="card p-4">
+            <h4 class="text-center mb-3">สวัสดีคุณ <span id="display-name">...</span></h4>
+            <p class="text-muted text-center">ประเภท: <strong id="display-type">...</strong> | ทะเบียน: <strong id="display-plate">...</strong></p>
+            <hr>
+            
+            <form id="incomeForm">
+                <div class="mb-3">
+                    <label class="form-label">วันที่สรุปยอด</label>
+                    <input type="date" id="report_date" class="form-control" required>
+                </div>
+
+                <div id="app-fields" style="display:none;">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><label>Grab</label><input type="number" id="grab" class="form-control" value="0"></div>
+                        <div class="col-6"><label>Bolt</label><input type="number" id="bolt" class="form-control" value="0"></div>
+                        <div class="col-6"><label>Maxim</label><input type="number" id="maxim" class="form-control" value="0"></div>
+                        <div class="col-6"><label>Indriver</label><input type="number" id="indriver" class="form-control" value="0"></div>
+                        <div class="col-6"><label>Lineman</label><input type="number" id="lineman" class="form-control" value="0"></div>
+                        <div class="col-6"><label>งานนอก</label><input type="number" id="outside" class="form-control" value="0"></div>
+                    </div>
+                </div>
+
+                <div id="airport-fields" style="display:none;">
+                    <div class="mb-3">
+                        <label>ยอดสนามบิน (เช่น 150*6+250*3+400)</label>
+                        <input type="text" id="airport_calc" class="form-control" placeholder="150*6+250*3+400">
+                    </div>
+                    <div class="mb-3">
+                        <label>ยอดงานเหมา (ถ้ามี)</label>
+                        <input type="number" id="mao" class="form-control" value="0">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-submit w-100 py-3 mt-3">ยืนยันส่งข้อมูล</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4twdAiiXSiK6HPL6-06JiWrKxdP4_yqA2Aho8xMVz4SPxFHrcvJsIS0Anklwyg24h/exec";
+        let driverData = {};
+
+        async function initLIFF() {
+            try {
+                await liff.init({ liffId: "LIFF_ID_ของคุณ" });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                const profile = await liff.getProfile();
+                document.getElementById('display-name').innerText = profile.displayName;
+                
+                // ดึงข้อมูลประเภทคนขับจาก Google Sheet (Master Sheet)
+                const response = await fetch(`${GAS_WEB_APP_URL}?uid=${profile.userId}`);
+                driverData = await response.json();
+
+                if(driverData.status === "success") {
+                    document.getElementById('display-type').innerText = driverData.type;
+                    document.getElementById('display-plate').innerText = driverData.plate;
+                    
+                    // สลับหน้าจอตามประเภท
+                    if(driverData.type === "สนามบิน") {
+                        document.getElementById('airport-fields').style.display = 'block';
+                    } else {
+                        document.getElementById('app-fields').style.display = 'block';
+                    }
+                } else {
+                    alert("ไม่พบข้อมูลคนขับในระบบ กรุณาติดต่อแอดมิน");
+                }
+                
+                // Set default date เป็นวันนี้
+                document.getElementById('report_date').valueAsDate = new Date();
+                document.getElementById('loader').style.display = 'none';
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('incomeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loader').style.display = 'flex';
+
+            const payload = {
+                uid: (await liff.getProfile()).userId,
+                name: driverData.name,
+                plate: driverData.plate,
+                type: driverData.type,
+                report_date: document.getElementById('report_date').value,
+                grab: parseFloat(document.getElementById('grab')?.value || 0),
+                bolt: parseFloat(document.getElementById('bolt')?.value || 0),
+                maxim: parseFloat(document.getElementById('maxim')?.value || 0),
+                indriver: parseFloat(document.getElementById('indriver')?.value || 0),
+                lineman: parseFloat(document.getElementById('lineman')?.value || 0),
+                outside: parseFloat(document.getElementById('outside')?.value || 0),
+                mao: parseFloat(document.getElementById('mao')?.value || 0),
+                airport_calc: document.getElementById('airport_calc')?.value || ""
+            };
+
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            if(result.status === 'success') {
+                alert(`บันทึกเรียบร้อย!\nยอดที่ต้องโอน: ${result.rental.toLocaleString()} บาท`);
+                liff.closeWindow();
+            }
+        });
+
+        initLIFF();
+    </script>
+</body>
+</html>
