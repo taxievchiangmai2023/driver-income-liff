@@ -7,82 +7,51 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .main-card { border: none; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); background: white; }
-        .btn-submit { background-color: #00b900; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; transition: 0.3s; }
-        .btn-submit:hover { background-color: #009900; transform: translateY(-2px); color: white; }
+        .btn-submit { background-color: #00b900; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; }
+        .btn-submit:hover { background-color: #009900; color: white; }
         .loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .form-label { font-weight: 600; color: #4a4a4a; font-size: 0.9rem; }
-        input.form-control { border-radius: 10px; padding: 10px; border: 1px solid #ddd; }
-        .driver-badge { background: #e8f5e9; color: #2e7d32; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-        .section-title { font-size: 1rem; font-weight: 700; color: #00b900; margin-bottom: 15px; border-left: 4px solid #00b900; padding-left: 10px; }
+        .form-label { font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; }
+        .section-title { font-size: 1rem; font-weight: 700; color: #00b900; margin: 20px 0 10px 0; border-left: 4px solid #00b900; padding-left: 10px; }
     </style>
 </head>
 <body>
 
     <div id="loader" class="loader-wrapper">
-        <div class="spinner-border text-success mb-3" role="status"></div>
-        <h5 class="text-secondary">กำลังตรวจสอบสิทธิ์...</h5>
+        <div class="spinner-border text-success mb-3"></div>
+        <h5>กำลังตรวจสอบสิทธิ์...</h5>
     </div>
 
     <div id="app-content" class="container py-4" style="display: none;">
         <div class="main-card p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">ส่งยอดรายได้</h4>
-                <span id="u_type" class="driver-badge">...</span>
-            </div>
-            <p class="text-muted mb-4">คุณ: <strong id="u_name">...</strong> | ทะเบียน: <strong id="u_plate">...</strong></p>
+            <h4 class="mb-1">ส่งยอดรายได้</h4>
+            <p class="text-muted mb-4">คุณ: <strong id="u_name">...</strong> (<span id="u_type"></span>)</p>
             <hr>
 
             <form id="incomeForm">
-                <div class="mb-4">
-                    <label class="form-label">🗓 ยอดของวันที่</label>
-                    <input type="date" id="report_date" class="form-control" required>
-                </div>
+                <label class="form-label">🗓 ยอดของวันที่</label>
+                <input type="date" id="report_date" class="form-control mb-3" required>
 
-                <div id="shared_app_fields">
-                    <div class="section-title">รายได้จากแอปพลิเคชัน</div>
-                    <div class="row g-2 mb-4">
-                        <div class="col-6">
-                            <label class="form-label">Grab</label>
-                            <input type="number" id="grab" class="form-control" placeholder="0" step="any">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Bolt</label>
-                            <input type="number" id="bolt" class="form-control" placeholder="0" step="any">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Maxim</label>
-                            <input type="number" id="maxim" class="form-control" placeholder="0" step="any">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Indriver</label>
-                            <input type="number" id="indriver" class="form-control" placeholder="0" step="any">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Lineman</label>
-                            <input type="number" id="lineman" class="form-control" placeholder="0" step="any">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">งานนอก</label>
-                            <input type="number" id="outside" class="form-control" placeholder="0" step="any">
-                        </div>
-                    </div>
+                <div class="section-title">รายได้จากแอป</div>
+                <div class="row g-2">
+                    <div class="col-6 mb-2"><label class="form-label">Grab</label><input type="number" id="grab" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6 mb-2"><label class="form-label">Bolt</label><input type="number" id="bolt" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6 mb-2"><label class="form-label">Maxim</label><input type="number" id="maxim" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6 mb-2"><label class="form-label">Indriver</label><input type="number" id="indriver" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6 mb-2"><label class="form-label">Lineman</label><input type="number" id="lineman" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6 mb-2"><label class="form-label">งานนอก</label><input type="number" id="outside" class="form-control" placeholder="0" step="any"></div>
                 </div>
 
                 <div id="section_airport" style="display: none;">
                     <div class="section-title">ยอดสนามบิน</div>
-                    <div class="mb-4">
-                        <label class="form-label">✈️ สูตรคำนวณสนามบิน</label>
-                        <input type="text" id="airport_calc" class="form-control" placeholder="เช่น 150*6+250*3+400">
-                    </div>
+                    <label class="form-label">✈️ สูตรคำนวณสนามบิน</label>
+                    <input type="text" id="airport_calc" class="form-control mb-2" placeholder="เช่น 150*6+250*3">
                 </div>
 
-                <div class="mb-3">
-                    <div class="section-title">งานเหมา</div>
-                    <label class="form-label">📦 ยอดงานเหมาทั้งหมด (ถ้ามี)</label>
-                    <input type="number" id="mao" class="form-control" placeholder="0" step="any">
-                </div>
+                <div class="section-title">งานเหมา</div>
+                <label class="form-label">📦 ยอดงานเหมาทั้งหมด (ถ้ามี)</label>
+                <input type="number" id="mao" class="form-control" placeholder="0" step="any">
 
                 <button type="submit" id="btnSubmit" class="btn btn-submit w-100 mt-4">ยืนยันและส่งข้อมูล</button>
             </form>
@@ -91,63 +60,39 @@
 
     <script>
         const LIFF_ID = "2009388959-5qMzDchY"; 
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby4twdAiiXSiK6HPL6-06JiWrKxdP4_yqA2Aho8xMVz4SPxFHrcvJsIS0Anklwyg24h/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwwLvT69pgb0K-uSADdHfFCV23mCZbgRmXrRJa3h2tIIGTnFQucKOROdegD_empt0yxvg/exec";
 
-        let driverData = {};
+        let driver = {};
 
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-
+                if (!liff.isLoggedIn()) { liff.login(); return; }
                 const profile = await liff.getProfile();
-                const response = await fetch(`${GAS_URL}?uid=${profile.userId}`);
-                driverData = await response.json();
+                const res = await fetch(`${GAS_URL}?uid=${profile.userId}`);
+                driver = await res.json();
 
-                if (driverData.status === "success") {
-                    renderUI();
-                } else if (driverData.status === "suspended") {
-                    alert("❌ บัญชีของคุณถูกระงับการใช้งาน");
-                    liff.closeWindow();
+                if (driver.status === "success") {
+                    document.getElementById('u_name').innerText = driver.name;
+                    document.getElementById('u_type').innerText = driver.type;
+                    document.getElementById('report_date').valueAsDate = new Date();
+                    if (driver.type === "สนามบิน") document.getElementById('section_airport').style.display = 'block';
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('app-content').style.display = 'block';
                 } else {
-                    alert("❓ ไม่พบข้อมูลในระบบ");
+                    alert(driver.status === "suspended" ? "❌ บัญชีถูกระงับ" : "❓ ไม่พบชื่อในระบบ");
                     liff.closeWindow();
                 }
-            } catch (err) {
-                console.error(err);
-                alert("⚠️ การเชื่อมต่อผิดพลาด");
-            }
-        }
-
-        function renderUI() {
-            document.getElementById('u_name').innerText = driverData.name;
-            document.getElementById('u_plate').innerText = driverData.plate;
-            document.getElementById('u_type').innerText = driverData.type;
-            document.getElementById('report_date').valueAsDate = new Date();
-
-            // แสดงส่วนสนามบินเฉพาะคนขับสายสนามบิน
-            if (driverData.type === "สนามบิน") {
-                document.getElementById('section_airport').style.display = 'block';
-            }
-
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
+            } catch (err) { alert("⚠️ การเชื่อมต่อผิดพลาด"); }
         }
 
         document.getElementById('incomeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
-            btn.disabled = true;
-            btn.innerText = "กำลังส่งข้อมูล...";
-
+            btn.disabled = true; btn.innerText = "กำลังส่งข้อมูล...";
+            const profile = await liff.getProfile();
             const payload = {
-                uid: (await liff.getProfile()).userId,
-                name: driverData.name,
-                plate: driverData.plate,
-                type: driverData.type,
+                uid: profile.userId, name: driver.name, plate: driver.plate, type: driver.type,
                 report_date: document.getElementById('report_date').value,
                 grab: parseFloat(document.getElementById('grab').value) || 0,
                 bolt: parseFloat(document.getElementById('bolt').value) || 0,
@@ -158,29 +103,13 @@
                 mao: parseFloat(document.getElementById('mao').value) || 0,
                 airport_calc: document.getElementById('airport_calc')?.value || ""
             };
-
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    alert(`✅ บันทึกสำเร็จ!\nยอดที่ต้องโอนคืน: ${result.rental.toLocaleString()} บาท`);
-                    liff.closeWindow();
-                } else {
-                    alert("❌ ผิดพลาด: " + result.message);
-                    btn.disabled = false;
-                    btn.innerText = "ยืนยันและส่งข้อมูล";
-                }
-            } catch (err) {
-                alert("⚠️ ส่งข้อมูลไม่สำเร็จ");
-                btn.disabled = false;
-                btn.innerText = "ยืนยันและส่งข้อมูล";
-            }
+            const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (result.status === "success") {
+                alert(`✅ บันทึกสำเร็จ!\nเช็คสรุปยอดใน LINE ได้เลยครับ`);
+                liff.closeWindow();
+            } else { alert("❌ ผิดพลาด: " + result.message); btn.disabled = false; }
         });
-
         main();
     </script>
 </body>
