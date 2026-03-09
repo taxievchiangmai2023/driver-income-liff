@@ -12,9 +12,10 @@
         .btn-submit { background-color: #00b900; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; transition: 0.3s; }
         .btn-submit:hover { background-color: #009900; transform: translateY(-2px); color: white; }
         .loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .form-label { font-weight: 600; color: #4a4a4a; }
-        input.form-control { border-radius: 10px; padding: 12px; border: 1px solid #ddd; }
+        .form-label { font-weight: 600; color: #4a4a4a; font-size: 0.9rem; }
+        input.form-control { border-radius: 10px; padding: 10px; border: 1px solid #ddd; }
         .driver-badge { background: #e8f5e9; color: #2e7d32; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .section-title { font-size: 1rem; font-weight: 700; color: #00b900; margin-bottom: 15px; border-left: 4px solid #00b900; padding-left: 10px; }
     </style>
 </head>
 <body>
@@ -39,45 +40,48 @@
                     <input type="date" id="report_date" class="form-control" required>
                 </div>
 
-                <div id="section_app" style="display: none;">
-                    <div class="row g-3">
+                <div id="shared_app_fields">
+                    <div class="section-title">รายได้จากแอปพลิเคชัน</div>
+                    <div class="row g-2 mb-4">
                         <div class="col-6">
                             <label class="form-label">Grab</label>
-                            <input type="number" id="grab" class="form-control" value="0" step="any">
+                            <input type="number" id="grab" class="form-control" placeholder="0" step="any">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Bolt</label>
-                            <input type="number" id="bolt" class="form-control" value="0" step="any">
+                            <input type="number" id="bolt" class="form-control" placeholder="0" step="any">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Maxim</label>
-                            <input type="number" id="maxim" class="form-control" value="0" step="any">
+                            <input type="number" id="maxim" class="form-control" placeholder="0" step="any">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Indriver</label>
-                            <input type="number" id="indriver" class="form-control" value="0" step="any">
+                            <input type="number" id="indriver" class="form-control" placeholder="0" step="any">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Lineman</label>
-                            <input type="number" id="lineman" class="form-control" value="0" step="any">
+                            <input type="number" id="lineman" class="form-control" placeholder="0" step="any">
                         </div>
                         <div class="col-6">
                             <label class="form-label">งานนอก</label>
-                            <input type="number" id="outside" class="form-control" value="0" step="any">
+                            <input type="number" id="outside" class="form-control" placeholder="0" step="any">
                         </div>
                     </div>
                 </div>
 
                 <div id="section_airport" style="display: none;">
-                    <div class="mb-3">
-                        <label class="form-label">✈️ ยอดสนามบิน (ระบุสูตรได้)</label>
+                    <div class="section-title">ยอดสนามบิน</div>
+                    <div class="mb-4">
+                        <label class="form-label">✈️ สูตรคำนวณสนามบิน</label>
                         <input type="text" id="airport_calc" class="form-control" placeholder="เช่น 150*6+250*3+400">
-                        <div class="form-text">ระบบจะคำนวณผลลัพธ์ให้โดยอัตโนมัติ</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">📦 งานเหมา (ถ้ามี)</label>
-                        <input type="number" id="mao" class="form-control" value="0" step="any">
-                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="section-title">งานเหมา</div>
+                    <label class="form-label">📦 ยอดงานเหมาทั้งหมด (ถ้ามี)</label>
+                    <input type="number" id="mao" class="form-control" placeholder="0" step="any">
                 </div>
 
                 <button type="submit" id="btnSubmit" class="btn btn-submit w-100 mt-4">ยืนยันและส่งข้อมูล</button>
@@ -86,11 +90,8 @@
     </div>
 
     <script>
-        // ---------------------------------------------------------
-        // แก้ไขค่า 2 บรรทัดนี้ให้เป็นของคุณ
         const LIFF_ID = "2009388959-5qMzDchY"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycby4twdAiiXSiK6HPL6-06JiWrKxdP4_yqA2Aho8xMVz4SPxFHrcvJsIS0Anklwyg24h/exec";
-        // ---------------------------------------------------------
 
         let driverData = {};
 
@@ -103,23 +104,21 @@
                 }
 
                 const profile = await liff.getProfile();
-                
-                // ดึงข้อมูลคนขับและเช็คสถานะ
                 const response = await fetch(`${GAS_URL}?uid=${profile.userId}`);
                 driverData = await response.json();
 
                 if (driverData.status === "success") {
                     renderUI();
                 } else if (driverData.status === "suspended") {
-                    alert("❌ บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อแอดมิน");
+                    alert("❌ บัญชีของคุณถูกระงับการใช้งาน");
                     liff.closeWindow();
                 } else {
-                    alert("❓ ไม่พบข้อมูลของคุณในระบบ กรุณาลงทะเบียนก่อน");
+                    alert("❓ ไม่พบข้อมูลในระบบ");
                     liff.closeWindow();
                 }
             } catch (err) {
                 console.error(err);
-                alert("⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่");
+                alert("⚠️ การเชื่อมต่อผิดพลาด");
             }
         }
 
@@ -129,10 +128,9 @@
             document.getElementById('u_type').innerText = driverData.type;
             document.getElementById('report_date').valueAsDate = new Date();
 
+            // แสดงส่วนสนามบินเฉพาะคนขับสายสนามบิน
             if (driverData.type === "สนามบิน") {
                 document.getElementById('section_airport').style.display = 'block';
-            } else {
-                document.getElementById('section_app').style.display = 'block';
             }
 
             document.getElementById('loader').style.display = 'none';
@@ -141,7 +139,6 @@
 
         document.getElementById('incomeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const btn = document.getElementById('btnSubmit');
             btn.disabled = true;
             btn.innerText = "กำลังส่งข้อมูล...";
@@ -152,13 +149,13 @@
                 plate: driverData.plate,
                 type: driverData.type,
                 report_date: document.getElementById('report_date').value,
-                grab: parseFloat(document.getElementById('grab')?.value || 0),
-                bolt: parseFloat(document.getElementById('bolt')?.value || 0),
-                maxim: parseFloat(document.getElementById('maxim')?.value || 0),
-                indriver: parseFloat(document.getElementById('indriver')?.value || 0),
-                lineman: parseFloat(document.getElementById('lineman')?.value || 0),
-                outside: parseFloat(document.getElementById('outside')?.value || 0),
-                mao: parseFloat(document.getElementById('mao')?.value || 0),
+                grab: parseFloat(document.getElementById('grab').value) || 0,
+                bolt: parseFloat(document.getElementById('bolt').value) || 0,
+                maxim: parseFloat(document.getElementById('maxim').value) || 0,
+                indriver: parseFloat(document.getElementById('indriver').value) || 0,
+                lineman: parseFloat(document.getElementById('lineman').value) || 0,
+                outside: parseFloat(document.getElementById('outside').value) || 0,
+                mao: parseFloat(document.getElementById('mao').value) || 0,
                 airport_calc: document.getElementById('airport_calc')?.value || ""
             };
 
@@ -178,7 +175,7 @@
                     btn.innerText = "ยืนยันและส่งข้อมูล";
                 }
             } catch (err) {
-                alert("⚠️ ส่งข้อมูลไม่สำเร็จ กรุณาเช็คอินเทอร์เน็ต");
+                alert("⚠️ ส่งข้อมูลไม่สำเร็จ");
                 btn.disabled = false;
                 btn.innerText = "ยืนยันและส่งข้อมูล";
             }
