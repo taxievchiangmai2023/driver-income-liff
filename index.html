@@ -58,28 +58,39 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycby4twdAiiXSiK6HPL6-06JiWrKxdP4_yqA2Aho8xMVz4SPxFHrcvJsIS0Anklwyg24h/exec";
         let driver = {};
 
-        async function main() {
-            await liff.init({ liffId: LIFF_ID });
-            if (!liff.isLoggedIn()) { liff.login(); return; }
+async function main() {
+    try {
+        // 1. เริ่มโหลด LIFF
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
 
-            const profile = await liff.getProfile();
-            const res = await fetch(`${GAS_URL}?uid=${profile.userId}`);
-            driver = await res.json();
+        const profile = await liff.getProfile();
+        
+        // 2. ตั้ง Timeout ให้การดึงข้อมูล (ถ้าเกิน 10 วิ ให้แจ้งเตือน)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); 
 
-            if (driver.status === "success") {
-                document.getElementById('u_name').innerText = driver.name;
-                document.getElementById('u_plate').innerText = driver.plate;
-                document.getElementById('u_type').innerText = driver.type;
-                
-                document.getElementById(driver.type === "สนามบิน" ? 'section_airport' : 'section_app').style.display = 'block';
-                document.getElementById('report_date').valueAsDate = new Date();
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('app').style.display = 'block';
-            } else {
-                alert(driver.status === "suspended" ? "❌ บัญชีถูกระงับ" : "❓ ไม่พบชื่อในระบบ");
-                liff.closeWindow();
-            }
+        const res = await fetch(`${GAS_URL}?uid=${profile.userId}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        driver = await res.json();
+
+        if (driver.status === "success") {
+            // ... (โค้ดแสดงผลเดิม) ...
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        } else {
+            // ถ้าไม่พบข้อมูล หรือโดนระงับ ให้ปิด loader ก่อนแล้วค่อยแจ้ง
+            document.getElementById('loader').style.display = 'none';
+            alert(driver.status === "suspended" ? "❌ บัญชีถูกระงับ" : "❓ ไม่พบชื่อในระบบ");
+            liff.closeWindow();
         }
+    } catch (err) {
+        document.getElementById('loader').style.display = 'none';
+        console.error(err);
+        alert("⚠️ การเชื่อมต่อล่าช้าหรือผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    }
+}
 
         document.getElementById('incomeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -114,4 +125,5 @@
     </script>
 </body>
 </html>
+
 
