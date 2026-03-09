@@ -3,44 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TaxiEV V5 - ระบบส่งยอด</title>
+    <title>ระบบส่งยอด TaxiEV</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { background-color: #f0f2f5; font-family: sans-serif; }
         .main-card { border: none; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); background: white; }
         .btn-submit { background-color: #00b900; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; width: 100%; }
-        .section-title { font-size: 1rem; font-weight: 700; color: #00b900; margin: 20px 0 10px; border-left: 4px solid #00b900; padding-left: 10px; }
-        .uid-box { background: #e9ecef; padding: 15px; border-radius: 10px; font-family: monospace; word-break: break-all; margin: 15px 0; border: 1px dashed #6c757d; }
+        .uid-box { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; font-family: monospace; word-break: break-all; margin: 15px 0; border: 1px dashed #ffeeba; }
     </style>
 </head>
 <body>
 
     <div id="loader" class="text-center mt-5">
-        <div class="spinner-border text-success mb-2"></div>
-        <p>กำลังโหลด...</p>
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2">กำลังตรวจสอบข้อมูล...</p>
     </div>
 
     <div id="new-user-screen" class="container py-5" style="display: none;">
         <div class="main-card p-4 text-center">
-            <h4 class="text-primary">ยินดีต้อนรับคนขับใหม่</h4>
-            <p class="text-muted">กรุณาส่งรหัสด้านล่างนี้ให้ "แอดมิน" เพื่อลงทะเบียน</p>
+            <h4 class="text-warning">⚠️ ยังไม่มีข้อมูลในระบบ</h4>
+            <p class="text-muted small">กรุณาก๊อปปี้รหัสนี้ส่งให้แอดมินเพื่อลงทะเบียน</p>
             <div class="uid-box" id="display-uid"></div>
-            <p class="small text-danger">หลังจากแอดมินเพิ่มข้อมูลแล้ว คุณจะสามารถเข้าใช้งานได้ทันที</p>
+            <p class="small">เมื่อแอดมินเพิ่มชื่อแล้ว คุณจะเข้าใช้งานหน้าส่งยอดได้ทันที</p>
             <button onclick="liff.closeWindow()" class="btn btn-secondary w-100">ปิดหน้าต่าง</button>
         </div>
     </div>
 
     <div id="app-content" class="container py-4" style="display: none;">
         <div class="main-card p-4">
-            <h5 class="mb-1">คุณ: <span id="u_name"></span></h5>
+            <h5 class="mb-0">คุณ: <span id="u_name"></span></h5>
             <p class="text-muted small">ทะเบียน: <span id="u_plate"></span> (<span id="u_type"></span>)</p>
             <hr>
             <form id="incomeForm">
-                <label class="form-label">🗓 ยอดของวันที่</label>
+                <label class="form-label font-weight-bold small">ยอดของวันที่</label>
                 <input type="date" id="report_date" class="form-control mb-3" required>
 
-                <div class="section-title">รายได้จากแอป</div>
                 <div class="row g-2 mb-3">
                     <div class="col-6"><label class="small">Grab</label><input type="number" id="grab" class="form-control" placeholder="0" step="any"></div>
                     <div class="col-6"><label class="small">Bolt</label><input type="number" id="bolt" class="form-control" placeholder="0" step="any"></div>
@@ -51,15 +49,14 @@
                 </div>
 
                 <div id="airport_section" style="display: none;">
-                    <div class="section-title">ยอดสนามบิน</div>
-                    <label class="small">✈️ สูตรคำนวณ (เช่น 150*6+200)</label>
-                    <input type="text" id="airport_calc" class="form-control mb-3" placeholder="ระบุสูตร">
+                    <label class="small">✈️ ยอดสนามบิน (สูตร)</label>
+                    <input type="text" id="airport_calc" class="form-control mb-3" placeholder="เช่น 150*6">
                 </div>
 
-                <div class="section-title">งานเหมา</div>
-                <input type="number" id="mao" class="form-control" placeholder="0" step="any">
+                <label class="small">📦 งานเหมา</label>
+                <input type="number" id="mao" class="form-control mb-4" placeholder="0" step="any">
 
-                <button type="submit" id="btnSubmit" class="btn btn-submit mt-4">ยืนยันและส่งข้อมูล</button>
+                <button type="submit" id="btnSubmit" class="btn btn-submit">ยืนยันและส่งข้อมูล</button>
             </form>
         </div>
     </div>
@@ -67,7 +64,7 @@
     <script>
         const LIFF_ID = "2009391738-E66HkNih"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwwLvT69pgb0K-uSADdHfFCV23mCZbgRmXrRJa3h2tIIGTnFQucKOROdegD_empt0yxvg/exec";
-        let driverData = {};
+        let driver = {};
 
         async function main() {
             try {
@@ -76,25 +73,24 @@
                 const profile = await liff.getProfile();
                 
                 const response = await fetch(`${GAS_URL}?uid=${profile.userId}`);
-                driverData = await response.json();
+                driver = await response.json();
 
                 document.getElementById('loader').style.display = 'none';
 
-                if (driverData.status === "success") {
-                    document.getElementById('u_name').innerText = driverData.name;
-                    document.getElementById('u_plate').innerText = driverData.plate;
-                    document.getElementById('u_type').innerText = driverData.type;
-                    if (driverData.type === "สนามบิน") document.getElementById('airport_section').style.display = 'block';
+                if (driver.status === "success") {
+                    document.getElementById('u_name').innerText = driver.name;
+                    document.getElementById('u_plate').innerText = driver.plate;
+                    document.getElementById('u_type').innerText = driver.type;
+                    if (driver.type === "สนามบิน") document.getElementById('airport_section').style.display = 'block';
                     document.getElementById('report_date').valueAsDate = new Date();
                     document.getElementById('app-content').style.display = 'block';
-                } else if (driverData.status === "new_user") {
-                    document.getElementById('display-uid').innerText = driverData.uid;
+                } else if (driver.status === "new_user") {
+                    document.getElementById('display-uid').innerText = driver.uid;
                     document.getElementById('new-user-screen').style.display = 'block';
                 } else {
-                    alert("⚠️ บัญชีของคุณถูกระงับ กรุณาติดต่อแอดมิน");
-                    liff.closeWindow();
+                    alert("❌ บัญชีถูกระงับ"); liff.closeWindow();
                 }
-            } catch (err) { alert("เชื่อมต่อผิดพลาด: " + err.message); }
+            } catch (err) { alert("เชื่อมต่อผิดพลาด"); }
         }
 
         document.getElementById('incomeForm').addEventListener('submit', async (e) => {
@@ -104,7 +100,7 @@
 
             const payload = {
                 uid: (await liff.getProfile()).userId,
-                name: driverData.name, plate: driverData.plate, type: driverData.type,
+                name: driver.name, plate: driver.plate, type: driver.type,
                 report_date: document.getElementById('report_date').value,
                 grab: parseFloat(document.getElementById('grab').value) || 0,
                 bolt: parseFloat(document.getElementById('bolt').value) || 0,
@@ -119,11 +115,10 @@
             const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
             const result = await res.json();
             if (result.status === "success") {
-                alert(`✅ บันทึกสำเร็จ!\nยอดโอนคืน: ${result.rental.toLocaleString()} บาท`);
+                alert(`บันทึกสำเร็จ! ยอดโอน: ${result.rental.toLocaleString()} บ.`);
                 liff.closeWindow();
             } else { alert("Error: " + result.message); btn.disabled = false; }
         });
-
         main();
     </script>
 </body>
