@@ -11,6 +11,7 @@
         .main-card { border: none; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); background: white; }
         .btn-submit { background-color: #00b900; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; width: 100%; }
         .uid-box { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; font-family: monospace; word-break: break-all; margin: 15px 0; border: 1px dashed #ffeeba; }
+        .required-label::after { content: " *"; color: red; }
     </style>
 </head>
 <body>
@@ -53,8 +54,15 @@
                     <input type="text" id="airport_calc" class="form-control mb-3" placeholder="ตัวอย่าง 150*6+200*3+500">
                 </div>
 
-                <label class="small">📦 งานเหมา</label>
-                <input type="number" id="mao" class="form-control mb-4" placeholder="0" step="any">
+                <div class="mb-2">
+                    <label class="small">📦 งานเหมา (จำนวนเงิน)</label>
+                    <input type="number" id="mao" class="form-control" placeholder="0" step="any">
+                </div>
+
+                <div id="mao_location_section" class="mb-4" style="display: none;">
+                    <label class="small text-primary required-label">📍 สถานที่ไปรับ-ส่ง (งานเหมา)</label>
+                    <input type="text" id="mao_location" class="form-control" placeholder="ระบุ ต้นทาง - ปลายทาง">
+                </div>
 
                 <button type="submit" id="btnSubmit" class="btn btn-submit">ยืนยันและส่งข้อมูล</button>
             </form>
@@ -66,17 +74,29 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwwLvT69pgb0K-uSADdHfFCV23mCZbgRmXrRJa3h2tIIGTnFQucKOROdegD_empt0yxvg/exec";
         let driver = {};
 
+        // ตรวจสอบการกรอกงานเหมา เพื่อเปิดช่องระบุสถานที่
+        document.getElementById('mao').addEventListener('input', function() {
+            const maoVal = parseFloat(this.value) || 0;
+            const locSection = document.getElementById('mao_location_section');
+            const locInput = document.getElementById('mao_location');
+            if (maoVal > 0) {
+                locSection.style.display = 'block';
+                locInput.setAttribute('required', 'required');
+            } else {
+                locSection.style.display = 'none';
+                locInput.removeAttribute('required');
+                locInput.value = '';
+            }
+        });
+
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 const profile = await liff.getProfile();
-                
                 const response = await fetch(`${GAS_URL}?uid=${profile.userId}`);
                 driver = await response.json();
-
                 document.getElementById('loader').style.display = 'none';
-
                 if (driver.status === "success") {
                     document.getElementById('u_name').innerText = driver.name;
                     document.getElementById('u_plate').innerText = driver.plate;
@@ -109,6 +129,7 @@
                 lineman: parseFloat(document.getElementById('lineman').value) || 0,
                 outside: parseFloat(document.getElementById('outside').value) || 0,
                 mao: parseFloat(document.getElementById('mao').value) || 0,
+                mao_location: document.getElementById('mao_location').value || "", // เพิ่มฟิลด์นี้
                 airport_calc: document.getElementById('airport_calc')?.value || ""
             };
 
@@ -123,6 +144,3 @@
     </script>
 </body>
 </html>
-
-
-
