@@ -2,117 +2,68 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แจ้งหยุดงาน - TaxiEV</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #fff5f5; color: #333; }
-        .leave-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(220, 53, 69, 0.1); background: white; margin-top: 20px; }
-        .header-section { background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%); color: white; border-radius: 20px 20px 0 0; padding: 25px; text-align: center; }
-        .btn-submit { background: #dc3545; color: white; border: none; padding: 15px; border-radius: 15px; font-weight: 600; font-size: 1.1rem; transition: 0.3s; }
-        .btn-submit:hover { background: #bd2130; transform: translateY(-2px); }
-        .form-label { font-weight: 600; color: #495057; }
-        #loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
+        body { background-color: #f8f9fa; font-family: sans-serif; }
+        .card-leave { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-confirm { background-color: #dc3545; color: white; border-radius: 10px; padding: 12px; font-weight: bold; }
     </style>
 </head>
-<body>
+<body class="p-3">
+    <div id="loader" class="text-center mt-5"><div class="spinner-border text-danger"></div></div>
 
-    <div id="loader" class="text-center">
-        <div class="spinner-border text-danger" role="status"></div>
-        <p class="mt-2">กำลังเตรียมข้อมูล...</p>
-    </div>
-
-    <div id="app-content" class="container" style="display: none;">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="leave-card">
-                    <div class="header-section">
-                        <h3 class="mb-0">📅 แจ้งหยุดงาน</h3>
-                        <p class="small opacity-75 mt-1">TaxiEV Rental Management</p>
+    <div id="content" class="container" style="display:none;">
+        <div class="card card-leave p-4">
+            <h4 class="text-danger mb-4">📅 แจ้งหยุดงาน / ลาพัก</h4>
+            <div class="mb-3">
+                <label class="small text-muted">ชื่อผู้ขับขี่</label>
+                <div id="driver_info" class="fw-bold">กำลังโหลด...</div>
+            </div>
+            <hr>
+            <form id="leaveForm">
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="small fw-bold">เริ่มหยุดวันที่</label>
+                        <input type="date" id="start_date" class="form-control" required>
                     </div>
-                    
-                    <div class="p-4">
-                        <div class="alert alert-secondary py-2 mb-4">
-                            <small class="d-block text-muted">ผู้แจ้ง:</small>
-                            <strong id="display_name" class="text-dark">---</strong> 
-                            <span id="display_plate" class="badge bg-danger ms-2">---</span>
-                        </div>
-
-                        <form id="leaveForm">
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="form-label small">เริ่มวันที่</label>
-                                    <input type="date" id="start_date" class="form-control" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">ถึงวันที่</label>
-                                    <input type="date" id="end_date" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label small">เหตุผลการหยุด / หมายเหตุ</label>
-                                <textarea id="leave_reason" class="form-control" rows="2" placeholder="เช่น พักผ่อน, ซ่อมรถ, ทำธุระ..."></textarea>
-                            </div>
-
-                            <button type="submit" id="btnSubmit" class="btn btn-submit w-100 mb-3">
-                                ยืนยันการแจ้งหยุด
-                            </button>
-                            
-                            <p class="text-center x-small text-muted">ระบบจะบันทึกยอดเป็น 0 บ. และลงปฏิทินให้อัตโนมัติ</p>
-                        </form>
+                    <div class="col-6">
+                        <label class="small fw-bold">ถึงวันที่</label>
+                        <input type="date" id="end_date" class="form-control" required>
                     </div>
                 </div>
-            </div>
+                <div class="mb-4">
+                    <label class="small fw-bold">เหตุผลการหยุด</label>
+                    <textarea id="reason" class="form-control" rows="2" placeholder="เช่น ธุระส่วนตัว, พักผ่อน, ซ่อมรถ"></textarea>
+                </div>
+                <button type="submit" id="btnSubmit" class="btn btn-confirm w-100">ยืนยันการแจ้งหยุดงาน</button>
+            </form>
         </div>
     </div>
 
     <script>
-        // ⚠️ แก้ไขข้อมูลตรงนี้
-        const LIFF_ID = "2009404765-GgNvDh2o"; 
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwWQ27KY0slw3EAyYsE_EY_BngTm06AyEp752fR6Jj4jqFTrI-CWO2XFvRG_s5HqegNYg/exec";
+        const LIFF_ID = "ใส่_LIFF_ID_ของหน้าแจ้งหยุด"; 
+        const GAS_URL = "ใส่_WEB_APP_URL_ล่าสุด/exec";
+        let driver = {};
 
-        let driverData = {};
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            
+            const profile = await liff.getProfile();
+            const response = await fetch(`${GAS_URL}?uid=${profile.userId}`);
+            driver = await response.json();
 
-        async function initLiff() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
-                    const profile = await liff.getProfile();
-                    await fetchDriverInfo(profile.userId);
-                }
-            } catch (error) {
-                console.error("LIFF Init Error", error);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ LINE");
-            }
-        }
-
-        async function fetchDriverInfo(uid) {
-            try {
-                const response = await fetch(`${GAS_URL}?uid=${uid}`);
-                driverData = await response.json();
-
-                if (driverData.status === "success") {
-                    document.getElementById('display_name').innerText = driverData.name;
-                    document.getElementById('display_plate').innerText = driverData.plate;
-                    
-                    // ตั้งค่าวันที่เริ่มต้นเป็นวันนี้
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('start_date').value = today;
-                    document.getElementById('end_date').value = today;
-
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('app-content').style.display = 'block';
-                } else {
-                    alert("ไม่พบข้อมูลผู้ขับขี่ในระบบ");
-                    liff.closeWindow();
-                }
-            } catch (error) {
-                alert("ไม่สามารถดึงข้อมูลจาก Server ได้");
+            if (driver.status === "success") {
+                document.getElementById('driver_info').innerText = `${driver.name} (${driver.plate})`;
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('start_date').valueAsDate = new Date();
+                document.getElementById('end_date').valueAsDate = new Date();
+            } else {
+                alert("ไม่พบข้อมูลสมาชิก"); liff.closeWindow();
             }
         }
 
@@ -122,48 +73,26 @@
             const start = document.getElementById('start_date').value;
             const end = document.getElementById('end_date').value;
 
-            if (new Date(end) < new Date(start)) {
-                alert("วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มหยุด");
-                return;
-            }
+            if (new Date(end) < new Date(start)) { alert("วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่ม"); return; }
 
-            if (!confirm(`ยืนยันการแจ้งหยุดงานวันที่ ${start} ถึง ${end}?`)) return;
-
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึก...';
+            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
 
             const payload = {
-                status: "หยุดงาน", // สำหรับให้ GAS แยกแยะ
+                status: "หยุดงาน",
                 uid: (await liff.getProfile()).userId,
-                name: driverData.name,
-                plate: driverData.plate,
-                type: driverData.type,
+                name: driver.name,
+                plate: driver.plate,
+                type: driver.type,
                 start_date: start,
                 end_date: end,
-                leave_reason: document.getElementById('leave_reason').value || "ไม่ได้ระบุเหตุผล"
+                leave_reason: document.getElementById('reason').value || "ไม่ได้ระบุ"
             };
 
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    alert("บันทึกวันหยุดลงระบบและปฏิทินเรียบร้อยแล้ว");
-                    liff.closeWindow();
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                alert("เกิดข้อผิดพลาด: " + error.message);
-                btn.disabled = false;
-                btn.innerText = "ยืนยันการแจ้งหยุด";
-            }
+            await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            alert("บันทึกวันหยุดเรียบร้อยแล้ว!");
+            liff.closeWindow();
         };
-
-        window.onload = initLiff;
+        main();
     </script>
 </body>
 </html>
