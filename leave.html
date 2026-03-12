@@ -130,11 +130,25 @@
             };
 
             try {
-                await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-                alert("บันทึกวันหยุดลงระบบเรียบร้อยแล้ว!");
+                // ส่งข้อมูลไปที่ GAS
+                const response = await fetch(GAS_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload) 
+                });
+                
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    alert("บันทึกวันหยุดลงระบบเรียบร้อยแล้ว!");
+                } else {
+                    // ถ้าหลังบ้านมี Error จะเด้งบอกตรงนี้เลย
+                    alert("ระบบแจ้งเตือน: " + result.message); 
+                }
                 liff.closeWindow();
+
             } catch(err) {
-                alert("เชื่อมต่อขัดข้อง แต่ข้อมูลอาจเข้าระบบแล้ว กรุณาตรวจสอบใน LINE");
+                alert("การส่งข้อมูลล้มเหลว กรุณาตรวจสอบ Executions ใน Apps Script");
+                console.error(err);
                 liff.closeWindow();
             }
         }
