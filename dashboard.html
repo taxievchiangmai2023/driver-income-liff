@@ -10,19 +10,20 @@
         body { background-color: #f4f7f6; font-family: 'Kanit', sans-serif; }
         .dashboard-header { background: linear-gradient(135deg, #0d6efd, #0dcaf0); color: white; padding: 25px 20px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .text-huge { font-size: 2.5rem; font-weight: bold; }
-        .week-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .text-huge { font-size: 2.8rem; font-weight: bold; margin: 10px 0; }
+        .week-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #eee; }
         .week-row:last-child { border-bottom: none; }
-        .month-selector { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); color: white; border-radius: 10px; padding: 5px 10px; font-weight: bold; text-align: center; margin-top: 10px;}
+        .month-selector { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); color: white; border-radius: 10px; padding: 6px 15px; font-weight: bold; text-align: center; margin-top: 5px;}
         .month-selector::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        .leave-badge { font-size: 1.5rem; color: #dc3545; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="dashboard-header mb-4">
-        <h5 class="mb-1 opacity-75">รายได้สุทธิประจำเดือน</h5>
+        <h6 class="mb-1 opacity-75">รายได้สุทธิประจำเดือน (หักค่าเช่าแล้ว)</h6>
         <div class="text-huge" id="totalNet">0 ฿</div>
         
-        <input type="month" id="monthSelector" class="month-selector mt-2" onchange="fetchSummary()">
+        <input type="month" id="monthSelector" class="month-selector" onchange="fetchSummary()">
     </div>
 
     <div id="loader" class="text-center py-5">
@@ -32,29 +33,26 @@
 
     <div id="app" style="display:none; padding-bottom: 30px;">
         <div class="container">
-            <div class="row g-3">
-                <div class="col-6">
-                    <div class="stat-card">
-                        <small class="text-muted">หยุดงานแล้ว</small>
-                        <h4 class="text-danger fw-bold mt-2"><span id="leaveDays">0</span> วัน</h4>
-                    </div>
-                </div>
+            
+            <div class="stat-card d-flex justify-content-between align-items-center px-4">
+                <span class="text-muted fw-bold">จำนวนวันที่หยุดพักผ่อน</span>
+                <span class="leave-badge"><span id="leaveDays">0</span> วัน</span>
             </div>
 
             <div class="stat-card mt-3 text-start">
-                <h6 class="fw-bold text-secondary mb-3">📊 สรุปรายได้แบ่งตามสัปดาห์ (สุทธิ)</h6>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 1 (วันที่ 1-7)</span> <strong id="w1">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 2 (วันที่ 8-14)</span> <strong id="w2">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 3 (วันที่ 15-21)</span> <strong id="w3">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 4 (วันที่ 22-28)</span> <strong id="w4">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">ปลายเดือน (วันที่ 29 เป็นต้นไป)</span> <strong id="w5">0 ฿</strong></div>
+                <h6 class="fw-bold text-secondary mb-3">📊 สรุปรายรับสุทธิ (รายสัปดาห์)</h6>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 1 (วันที่ 1-7)</span> <strong class="text-success" id="w1">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 2 (วันที่ 8-14)</span> <strong class="text-success" id="w2">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 3 (วันที่ 15-21)</span> <strong class="text-success" id="w3">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 4 (วันที่ 22-28)</span> <strong class="text-success" id="w4">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">ปลายเดือน (วันที่ 29 เป็นต้นไป)</span> <strong class="text-success" id="w5">0 ฿</strong></div>
             </div>
         </div>
     </div>
 
     <script>
-        const LIFF_ID = "2009404765-4vc029WP"; 
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbw6ToiCFNw5G_nICYPiIuYmEeRoeFloA-MTQt73TbQ0ImfVHv3UOLt9ldjG5lDiqY9TGg/exec";
+        const LIFF_ID = "ใส่_LIFF_ID_ของหน้าสรุปยอด"; 
+        const GAS_URL = "ใส่_WEB_APP_URL_ล่าสุด/exec";
         let userUid = "";
 
         async function main() {
@@ -71,19 +69,17 @@
                 if (mm < 10) mm = '0' + mm;
                 document.getElementById('monthSelector').value = `${yyyy}-${mm}`;
 
-                // ดึงข้อมูลครั้งแรก
                 fetchSummary();
             } catch (err) {
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อ LINE");
             }
         }
 
-        // ฟังก์ชันดึงข้อมูลตามเดือนที่เลือก
         async function fetchSummary() {
             document.getElementById('loader').style.display = 'block';
             document.getElementById('app').style.display = 'none';
 
-            const selectedMonth = document.getElementById('monthSelector').value; // จะได้ค่าออกมาเช่น "2026-03"
+            const selectedMonth = document.getElementById('monthSelector').value; 
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -91,14 +87,14 @@
                     body: JSON.stringify({ 
                         status: "ดูสรุป", 
                         uid: userUid,
-                        month_val: selectedMonth // ส่งเดือนที่ต้องการไปให้ GAS
+                        month_val: selectedMonth
                     })
                 });
                 const data = await res.json();
 
                 if(data.status === "success") {
+                    // ลบการแสดงผล Total Gross ออกไปแล้ว โชว์แค่ Net อย่างเดียว
                     document.getElementById('totalNet').innerText = data.totalNet.toLocaleString() + " ฿";
-                    document.getElementById('totalGross').innerText = data.totalGross.toLocaleString() + " ฿";
                     document.getElementById('leaveDays').innerText = data.leaveDays;
                     
                     document.getElementById('w1').innerText = data.weeks[0].toLocaleString() + " ฿";
