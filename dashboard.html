@@ -7,45 +7,43 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { background-color: #f4f7f6; font-family: 'Kanit', sans-serif; }
-        .dashboard-header { background: linear-gradient(135deg, #0d6efd, #0dcaf0); color: white; padding: 25px 20px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .text-huge { font-size: 2.8rem; font-weight: bold; margin: 10px 0; }
-        .week-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #eee; }
+        :root { --brand-dark: #13444B; --brand-light: #4EB1B3; --bg-light: #f4f7f6; }
+        body { background-color: var(--bg-light); font-family: 'Kanit', sans-serif; }
+        .dashboard-header { background: linear-gradient(135deg, var(--brand-dark), var(--brand-light)); color: white; padding: 30px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden;}
+        .dashboard-header::after { content: ''; position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; background: rgba(255,255,255,0.05); transform: rotate(45deg); }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; position: relative; z-index: 10;}
+        .text-huge { font-size: 2.8rem; font-weight: bold; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .week-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #e0e0e0; }
         .week-row:last-child { border-bottom: none; }
-        .month-selector { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); color: white; border-radius: 10px; padding: 6px 15px; font-weight: bold; text-align: center; margin-top: 5px;}
+        .month-selector { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); color: white; border-radius: 10px; padding: 8px 15px; font-weight: bold; text-align: center; margin-top: 5px;}
         .month-selector::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         .leave-badge { font-size: 1.5rem; color: #dc3545; font-weight: bold; }
+        .text-brand { color: var(--brand-light); }
     </style>
 </head>
 <body>
     <div class="dashboard-header mb-4">
-        <h6 class="mb-1 opacity-75">รายได้สุทธิประจำเดือน (หักค่าเช่าแล้ว)</h6>
+        <h6 class="mb-1 opacity-75">รายได้สุทธิประจำเดือน</h6>
         <div class="text-huge" id="totalNet">0 ฿</div>
-        
         <input type="month" id="monthSelector" class="month-selector" onchange="fetchSummary()">
     </div>
 
-    <div id="loader" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-muted">กำลังคำนวณยอด...</p>
-    </div>
+    <div id="loader" class="text-center py-5"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">กำลังคำนวณยอด...</p></div>
 
     <div id="app" style="display:none; padding-bottom: 30px;">
         <div class="container">
-            
-            <div class="stat-card d-flex justify-content-between align-items-center px-4">
+            <div class="stat-card d-flex justify-content-between align-items-center px-4" style="margin-top: -30px;">
                 <span class="text-muted fw-bold">จำนวนวันที่หยุดพักผ่อน</span>
                 <span class="leave-badge"><span id="leaveDays">0</span> วัน</span>
             </div>
 
             <div class="stat-card mt-3 text-start">
-                <h6 class="fw-bold text-secondary mb-3">📊 สรุปรายรับสุทธิ (รายสัปดาห์)</h6>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 1 (วันที่ 1-7)</span> <strong class="text-success" id="w1">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 2 (วันที่ 8-14)</span> <strong class="text-success" id="w2">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 3 (วันที่ 15-21)</span> <strong class="text-success" id="w3">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 4 (วันที่ 22-28)</span> <strong class="text-success" id="w4">0 ฿</strong></div>
-                <div class="week-row"><span class="text-muted">ปลายเดือน (วันที่ 29 เป็นต้นไป)</span> <strong class="text-success" id="w5">0 ฿</strong></div>
+                <h6 class="fw-bold mb-3" style="color: var(--brand-dark);">📊 สรุปรายรับสุทธิ (รายสัปดาห์)</h6>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 1 (วันที่ 1-7)</span> <strong class="text-brand" id="w1">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 2 (วันที่ 8-14)</span> <strong class="text-brand" id="w2">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 3 (วันที่ 15-21)</span> <strong class="text-brand" id="w3">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">สัปดาห์ที่ 4 (วันที่ 22-28)</span> <strong class="text-brand" id="w4">0 ฿</strong></div>
+                <div class="week-row"><span class="text-muted">ปลายเดือน (วันที่ 29 เป็นต้นไป)</span> <strong class="text-brand" id="w5">0 ฿</strong></div>
             </div>
         </div>
     </div>
@@ -56,61 +54,29 @@
         let userUid = "";
 
         async function main() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) { liff.login(); return; }
-                
-                userUid = (await liff.getProfile()).userId;
-
-                // ตั้งค่าเริ่มต้นให้ช่องเลือกเดือนเป็น "เดือนปัจจุบัน"
-                const now = new Date();
-                const yyyy = now.getFullYear();
-                let mm = now.getMonth() + 1;
-                if (mm < 10) mm = '0' + mm;
-                document.getElementById('monthSelector').value = `${yyyy}-${mm}`;
-
-                fetchSummary();
-            } catch (err) {
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ LINE");
-            }
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            userUid = (await liff.getProfile()).userId;
+            const now = new Date(); const yyyy = now.getFullYear(); let mm = now.getMonth() + 1;
+            if (mm < 10) mm = '0' + mm;
+            document.getElementById('monthSelector').value = `${yyyy}-${mm}`;
+            fetchSummary();
         }
 
         async function fetchSummary() {
-            document.getElementById('loader').style.display = 'block';
-            document.getElementById('app').style.display = 'none';
-
-            const selectedMonth = document.getElementById('monthSelector').value; 
-
+            document.getElementById('loader').style.display = 'block'; document.getElementById('app').style.display = 'none';
             try {
-                const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        status: "ดูสรุป", 
-                        uid: userUid,
-                        month_val: selectedMonth
-                    })
-                });
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ status: "ดูสรุป", uid: userUid, month_val: document.getElementById('monthSelector').value }) });
                 const data = await res.json();
-
                 if(data.status === "success") {
-                    // ลบการแสดงผล Total Gross ออกไปแล้ว โชว์แค่ Net อย่างเดียว
-                    document.getElementById('totalNet').innerText = data.totalNet.toLocaleString() + " ฿";
-                    document.getElementById('leaveDays').innerText = data.leaveDays;
-                    
-                    document.getElementById('w1').innerText = data.weeks[0].toLocaleString() + " ฿";
-                    document.getElementById('w2').innerText = data.weeks[1].toLocaleString() + " ฿";
-                    document.getElementById('w3').innerText = data.weeks[2].toLocaleString() + " ฿";
-                    document.getElementById('w4').innerText = data.weeks[3].toLocaleString() + " ฿";
+                    document.getElementById('totalNet').innerText = data.totalNet.toLocaleString() + " ฿"; document.getElementById('leaveDays').innerText = data.leaveDays;
+                    document.getElementById('w1').innerText = data.weeks[0].toLocaleString() + " ฿"; document.getElementById('w2').innerText = data.weeks[1].toLocaleString() + " ฿";
+                    document.getElementById('w3').innerText = data.weeks[2].toLocaleString() + " ฿"; document.getElementById('w4').innerText = data.weeks[3].toLocaleString() + " ฿";
                     document.getElementById('w5').innerText = data.weeks[4].toLocaleString() + " ฿";
-
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
+                    document.getElementById('loader').style.display = 'none'; document.getElementById('app').style.display = 'block';
                 }
-            } catch (err) {
-                alert("โหลดข้อมูลผิดพลาด กรุณาลองใหม่");
-            }
+            } catch (err) { alert("โหลดข้อมูลผิดพลาด"); }
         }
-        
         main();
     </script>
 </body>
