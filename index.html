@@ -3,147 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบส่งยอด TaxiEV</title>
+    <title>ส่งยอดรายวัน - TaxiEV</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { background-color: #f0f2f5; font-family: sans-serif; }
-        .main-card { border: none; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); background: white; }
-        .btn-submit { background-color: #00b900; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; width: 100%; }
-        .uid-box { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; font-family: monospace; word-break: break-all; margin: 15px 0; border: 1px dashed #ffeeba; }
-        .required-label::after { content: " *"; color: red; }
+        :root { --brand-dark: #13444B; --brand-light: #4EB1B3; --bg-light: #f4f7f6; }
+        body { background-color: var(--bg-light); font-family: 'Kanit', sans-serif; padding-bottom: 40px; }
+        .brand-header { background: linear-gradient(135deg, var(--brand-dark), var(--brand-light)); color: white; padding: 30px 20px 40px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+        .brand-header::after { content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); transform: rotate(45deg); }
+        .card-custom { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: none; margin-top: -20px; margin-bottom: 15px; position: relative; z-index: 10; }
+        .form-section { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid var(--brand-light); }
+        .form-label { font-weight: bold; color: var(--brand-dark); font-size: 0.9rem; margin-bottom: 5px; }
+        .form-control { border-radius: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; }
+        .form-control:focus { border-color: var(--brand-light); box-shadow: 0 0 0 0.2rem rgba(78, 177, 179, 0.25); }
+        .btn-brand { background-color: var(--brand-dark); color: white; border-radius: 10px; padding: 12px; font-weight: bold; width: 100%; border: none; transition: 0.3s; }
+        .btn-brand:hover { background-color: var(--brand-light); color: white; }
     </style>
 </head>
 <body>
-
-    <div id="loader" class="text-center mt-5">
-        <div class="spinner-border text-success"></div>
-        <p class="mt-2">กำลังตรวจสอบข้อมูล...</p>
+    <div class="brand-header">
+        <h3 class="fw-bold mb-0">TAXI EV</h3>
+        <p class="mb-0 opacity-75">CHIANG MAI</p>
     </div>
 
-    <div id="new-user-screen" class="container py-5" style="display: none;">
-        <div class="main-card p-4 text-center">
-            <h4 class="text-warning">⚠️ ยังไม่มีข้อมูลในระบบ</h4>
-            <p class="text-muted small">กรุณาคัดลอกรหัสนี้ส่งให้แอดมินเพื่อลงทะเบียน</p>
-            <div class="uid-box" id="display-uid"></div>
-            <p class="small">เมื่อแอดมินเพิ่มชื่อแล้ว คุณจะเข้าใช้งานหน้าส่งยอดได้ทันที</p>
-            <button onclick="liff.closeWindow()" class="btn btn-secondary w-100">ปิดหน้าต่าง</button>
-        </div>
-    </div>
+    <div class="container">
+        <div id="loader" class="text-center py-5 mt-4"><div class="spinner-border text-info"></div><p class="mt-2 text-muted">กำลังตรวจสอบข้อมูล...</p></div>
+        
+        <form id="reportForm" style="display:none;">
+            <div class="card-custom text-center">
+                <h5 class="fw-bold text-dark mb-1" id="driverName">...</h5>
+                <span class="badge bg-secondary" id="driverPlate">...</span>
+                <span class="badge" style="background-color: var(--brand-light);" id="driverType">...</span>
+                <input type="hidden" id="uid"><input type="hidden" id="name"><input type="hidden" id="plate"><input type="hidden" id="type">
+            </div>
 
-    <div id="app-content" class="container py-4" style="display: none;">
-        <div class="main-card p-4">
-            <h5 class="mb-0">คุณ: <span id="u_name"></span></h5>
-            <p class="text-muted small">ทะเบียน: <span id="u_plate"></span> (<span id="u_type"></span>)</p>
-            <hr>
-            <form id="incomeForm">
-                <label class="form-label font-weight-bold small">ยอดของวันที่</label>
-                <input type="date" id="report_date" class="form-control mb-3" required>
+            <div class="form-section" style="border-left-color: #6c757d;">
+                <label class="form-label">วันที่ส่งยอด</label>
+                <input type="date" id="report_date" class="form-control" required>
+            </div>
 
-                <div class="row g-2 mb-3">
-                    <div class="col-6"><label class="small">Grab</label><input type="number" id="grab" class="form-control" placeholder="0" step="any"></div>
-                    <div class="col-6"><label class="small">Bolt</label><input type="number" id="bolt" class="form-control" placeholder="0" step="any"></div>
-                    <div class="col-6"><label class="small">Maxim</label><input type="number" id="maxim" class="form-control" placeholder="0" step="any"></div>
-                    <div class="col-6"><label class="small">Indriver</label><input type="number" id="indriver" class="form-control" placeholder="0" step="any"></div>
-                    <div class="col-6"><label class="small">Lineman</label><input type="number" id="lineman" class="form-control" placeholder="0" step="any"></div>
-                    <div class="col-6"><label class="small">งานนอก</label><input type="number" id="outside" class="form-control" placeholder="0" step="any"></div>
+            <div class="form-section">
+                <h6 class="fw-bold mb-3" style="color: var(--brand-light);">📱 รายได้จากแอปพลิเคชัน</h6>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Grab</label><input type="number" id="grab" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">Bolt</label><input type="number" id="bolt" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">Maxim</label><input type="number" id="maxim" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">InDriver</label><input type="number" id="indriver" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-12"><label class="form-label">LINE MAN</label><input type="number" id="lineman" class="form-control" placeholder="0" step="any"></div>
                 </div>
+            </div>
 
-                <div id="airport_section" style="display: none;">
-                    <label class="small">✈️ ยอดสนามบิน (โดยใส่ราคาบิล*จำนวนบิล) </label>
-                    <input type="text" id="airport_calc" class="form-control mb-3" placeholder="ตัวอย่าง 150*6+200*3+500">
+            <div class="form-section" style="border-left-color: #ffc107;">
+                <h6 class="text-warning fw-bold mb-3">🚕 งานนอกระบบ / เหมา</h6>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">งานนอก</label><input type="number" id="outside" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">งานเหมา</label><input type="number" id="mao" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-12"><label class="form-label">สถานที่เหมา (ถ้ามี)</label><input type="text" id="mao_location" class="form-control" placeholder="เช่น เชียงใหม่-ปาย"></div>
                 </div>
+            </div>
 
-                <div class="mb-2">
-                    <label class="small">📦 งานเหมา (จำนวนเงิน)</label>
-                    <input type="number" id="mao" class="form-control" placeholder="0" step="any">
-                </div>
+            <div class="form-section" id="airportSection" style="display:none; border-left-color: #198754;">
+                <h6 class="text-success fw-bold mb-3">✈️ งานสนามบิน</h6>
+                <label class="form-label">ยอดหักเข้าสนามบิน (ใส่สูตรได้)</label>
+                <input type="text" id="airport_calc" class="form-control" placeholder="เช่น 150+150">
+            </div>
 
-                <div id="mao_location_section" class="mb-4" style="display: none;">
-                    <label class="small text-primary required-label">📍 สถานที่ไปรับ-ส่ง (งานเหมา)</label>
-                    <input type="text" id="mao_location" class="form-control" placeholder="ระบุ ต้นทาง - ปลายทาง">
-                </div>
-
-                <button type="submit" id="btnSubmit" class="btn btn-submit">ยืนยันและส่งข้อมูล</button>
-            </form>
-        </div>
+            <button type="submit" id="btnSubmit" class="btn btn-brand mt-3 shadow-sm">ส่งยอดรายวัน</button>
+        </form>
     </div>
 
     <script>
         const LIFF_ID = "2009404765-ZiE2cZmu"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
-        let driver = {};
-
-        // ตรวจสอบการกรอกงานเหมา เพื่อเปิดช่องระบุสถานที่
-        document.getElementById('mao').addEventListener('input', function() {
-            const maoVal = parseFloat(this.value) || 0;
-            const locSection = document.getElementById('mao_location_section');
-            const locInput = document.getElementById('mao_location');
-            if (maoVal > 0) {
-                locSection.style.display = 'block';
-                locInput.setAttribute('required', 'required');
-            } else {
-                locSection.style.display = 'none';
-                locInput.removeAttribute('required');
-                locInput.value = '';
-            }
-        });
-
+        
         async function main() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) { liff.login(); return; }
-                const profile = await liff.getProfile();
-                const response = await fetch(`${GAS_URL}?uid=${profile.userId}`);
-                driver = await response.json();
-                document.getElementById('loader').style.display = 'none';
-                if (driver.status === "success") {
-                    document.getElementById('u_name').innerText = driver.name;
-                    document.getElementById('u_plate').innerText = driver.plate;
-                    document.getElementById('u_type').innerText = driver.type;
-                    if (driver.type === "สนามบิน") document.getElementById('airport_section').style.display = 'block';
-                    document.getElementById('report_date').valueAsDate = new Date();
-                    document.getElementById('app-content').style.display = 'block';
-                } else if (driver.status === "new_user") {
-                    document.getElementById('display-uid').innerText = driver.uid;
-                    document.getElementById('new-user-screen').style.display = 'block';
-                } else {
-                    alert("❌ บัญชีถูกระงับ"); liff.closeWindow();
-                }
-            } catch (err) { alert("เชื่อมต่อผิดพลาด"); }
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            const profile = await liff.getProfile();
+            document.getElementById('uid').value = profile.userId;
+            
+            // Set Default Date
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('report_date').value = `${yyyy}-${mm}-${dd}`;
+
+            checkUser(profile.userId);
         }
 
-        document.getElementById('incomeForm').addEventListener('submit', async (e) => {
+        async function checkUser(uid) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${uid}`);
+                const data = await res.json();
+                
+                if (data.status === "success") {
+                    document.getElementById('driverName').innerText = data.name;
+                    document.getElementById('driverPlate').innerText = data.plate;
+                    document.getElementById('driverType').innerText = data.type;
+                    
+                    document.getElementById('name').value = data.name;
+                    document.getElementById('plate').value = data.plate;
+                    document.getElementById('type').value = data.type;
+                    
+                    if(data.type === "สนามบิน") document.getElementById('airportSection').style.display = 'block';
+                    
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('reportForm').style.display = 'block';
+                } else {
+                    document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold">ไม่มีสิทธิ์ใช้งาน หรือบัญชีถูกระงับ</p>`;
+                }
+            } catch (err) { alert("เชื่อมต่อผิดพลาด กรุณาลองใหม่"); }
+        }
+
+        document.getElementById('reportForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
-            btn.disabled = true; btn.innerText = "กำลังส่ง...";
+            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
 
             const payload = {
-                uid: (await liff.getProfile()).userId,
-                name: driver.name, plate: driver.plate, type: driver.type,
+                uid: document.getElementById('uid').value,
+                name: document.getElementById('name').value,
+                plate: document.getElementById('plate').value,
+                type: document.getElementById('type').value,
                 report_date: document.getElementById('report_date').value,
-                grab: parseFloat(document.getElementById('grab').value) || 0,
-                bolt: parseFloat(document.getElementById('bolt').value) || 0,
-                maxim: parseFloat(document.getElementById('maxim').value) || 0,
-                indriver: parseFloat(document.getElementById('indriver').value) || 0,
-                lineman: parseFloat(document.getElementById('lineman').value) || 0,
-                outside: parseFloat(document.getElementById('outside').value) || 0,
-                mao: parseFloat(document.getElementById('mao').value) || 0,
-                mao_location: document.getElementById('mao_location').value || "", // เพิ่มฟิลด์นี้
-                airport_calc: document.getElementById('airport_calc')?.value || ""
+                grab: document.getElementById('grab').value,
+                bolt: document.getElementById('bolt').value,
+                maxim: document.getElementById('maxim').value,
+                indriver: document.getElementById('indriver').value,
+                lineman: document.getElementById('lineman').value,
+                outside: document.getElementById('outside').value,
+                mao: document.getElementById('mao').value,
+                mao_location: document.getElementById('mao_location').value,
+                airport_calc: document.getElementById('airport_calc').value
             };
 
-            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-            const result = await res.json();
-            if (result.status === "success") {
-                alert(`บันทึกสำเร็จ! ยอดโอน: ${result.rental.toLocaleString()} บ.`);
-                liff.closeWindow();
-            } else { alert("Error: " + result.message); btn.disabled = false; }
-        });
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if(result.status === "success") {
+                    alert("บันทึกยอดสำเร็จ กรุณาแนบสลิปในแชทครับ");
+                    liff.closeWindow();
+                } else { alert("เกิดข้อผิดพลาด: " + result.message); }
+            } catch (err) { alert("ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่"); }
+            
+            btn.disabled = false; btn.innerText = "ส่งยอดรายวัน";
+        };
         main();
     </script>
 </body>
 </html>
-
-
-
