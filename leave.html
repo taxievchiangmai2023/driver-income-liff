@@ -93,13 +93,12 @@
             }
         }
 
-        async function checkUser(uid) {
+        async function checkUser(userId) {
             try {
-                const res = await fetch(`${GAS_URL}?uid=${uid}`); 
+                const res = await fetch(`${GAS_URL}?uid=${userId}`); 
                 const data = await res.json();
                 
                 if (data.status === "success") {
-                    // กรณีเป็นคนขับที่ลงทะเบียนแล้วและสถานะ Active
                     document.getElementById('driverName').innerText = data.name; 
                     if(document.getElementById('driverPlate')) document.getElementById('driverPlate').innerText = data.plate;
                     if(document.getElementById('driverType')) document.getElementById('driverType').innerText = data.type;
@@ -108,42 +107,22 @@
                     if(document.getElementById('plate')) document.getElementById('plate').value = data.plate; 
                     if(document.getElementById('type')) document.getElementById('type').value = data.type;
                     
-                    if(data.type === "สนามบิน" && document.getElementById('airportSection')) {
-                        document.getElementById('airportSection').style.display = 'block';
-                    }
-                    
                     document.getElementById('loader').style.display = 'none'; 
-                    
-                    // โชว์ฟอร์มของแต่ละหน้า (เช็คว่าหน้านั้นใช้ ID ฟอร์มชื่ออะไร)
-                    if(document.getElementById('reportForm')) document.getElementById('reportForm').style.display = 'block';
-                    if(document.getElementById('leaveForm')) document.getElementById('leaveForm').style.display = 'block';
-                    if(document.getElementById('app')) document.getElementById('app').style.display = 'block';
+                    document.getElementById('leaveForm').style.display = 'block';
                 } else { 
-                    // --- 🔴 บล็อกหน้าจอเมื่อเป็นคนขับใหม่ (ไม่แจก UID) ---
-                    if(document.getElementById('reportForm')) document.getElementById('reportForm').style.display = 'none';
-                    if(document.getElementById('leaveForm')) document.getElementById('leaveForm').style.display = 'none';
-                    if(document.getElementById('historyList')) document.getElementById('historyList').style.display = 'none';
-                    if(document.getElementById('editSection')) document.getElementById('editSection').style.display = 'none';
-                    
-                    // แจ้งเตือนให้ไปเอา UID ที่หน้าสรุปผลงาน
-                    document.getElementById('loader').style.display = 'block';
+                    // 🔴 ถ้าเป็นคนใหม่ ให้บล็อกและไล่ไปหน้าส่งยอด
+                    document.getElementById('leaveForm').style.display = 'none';
                     document.getElementById('loader').innerHTML = `
-                        <div class="container pb-5">
-                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; border-top: 5px solid #dc3545; text-align: center;">
+                        <div class="container pb-5 mt-4">
+                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #dc3545; text-align: center;">
                                 <h4 class="fw-bold text-danger mb-3">⛔ ไม่มีสิทธิ์เข้าใช้งาน</h4>
-                                <p class="text-muted mb-2">บัญชีของคุณยังไม่ได้รับการอนุมัติ</p>
-                                
-                                <div style="background-color: #fff3f3; border-radius: 10px; padding: 15px; margin: 20px 0; color: #dc3545; border: 1px dashed #dc3545;">
-                                    กรุณาไปที่เมนู<br>
-                                    <strong style="font-size: 1.2rem;">"สรุปผลงาน"</strong><br>
-                                    เพื่อคัดลอกรหัส UID<br>ส่งให้แอดมินลงทะเบียนก่อนใช้งานครับ
-                                </div>
+                                <p class="text-muted mb-0">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <b>"ส่งยอดรายวัน"</b> <br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินลงทะเบียนก่อนเข้าใช้งานเมนูนี้ครับ</p>
                             </div>
                         </div>
                     `; 
                 }
             } catch (err) { 
-                document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด กรุณาลองใหม่</p>`; 
+                document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold text-center mt-4">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด กรุณาลองใหม่</p>`; 
             }
         }
 
