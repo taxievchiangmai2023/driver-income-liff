@@ -27,7 +27,7 @@
     <div id="historyList">
         <div class="brand-header mb-4">
             <h4 class="fw-bold mb-0">ประวัติการส่งยอด</h4>
-            <p class="mb-0 opacity-75 small">ดูย้อนหลัง 5 วันล่าสุด</p>
+            <p class="mb-0 opacity-75 small">ดูย้อนหลังล่าสุด</p>
         </div>
         <div class="container">
             <div id="loader" class="text-center py-5"><div class="spinner-border text-info"></div></div>
@@ -96,11 +96,8 @@
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ status: "ดูประวัติ", uid: uid }) });
                 const data = await res.json();
                 if(data.status === "success" && data.history.length > 0) {
-                    currentHistoryData = data.history; 
-                    renderHistory(currentHistoryData);
-                } else {
-                    document.getElementById('cardsContainer').innerHTML = "<p class='text-center text-muted mt-5'>ยังไม่มีประวัติการส่งยอดครับ</p>";
-                }
+                    currentHistoryData = data.history; renderHistory(currentHistoryData);
+                } else { document.getElementById('cardsContainer').innerHTML = "<p class='text-center text-muted mt-5'>ยังไม่มีประวัติการส่งยอดครับ</p>"; }
                 document.getElementById('loader').style.display = 'none';
             } catch(err) { alert("โหลดประวัติไม่สำเร็จ"); }
         }
@@ -135,8 +132,7 @@
 
         function openEditForm(index, dateStr) {
             const item = currentHistoryData[index]; 
-            document.getElementById('editRow').value = item.row;
-            document.getElementById('editTimestamp').value = item.timestamp;
+            document.getElementById('editRow').value = item.row; document.getElementById('editTimestamp').value = item.timestamp;
             document.getElementById('editDateDisplay').innerText = dateStr;
             document.getElementById('e_grab').value = item.grab || ""; document.getElementById('e_bolt').value = item.bolt || "";
             document.getElementById('e_maxim').value = item.maxim || ""; document.getElementById('e_indriver').value = item.indriver || "";
@@ -148,7 +144,6 @@
             } else {
                 document.getElementById('airportSection').style.display = 'block'; document.getElementById('e_airport').value = item.airport_calc || "";
             }
-            
             document.getElementById('historyList').style.display = 'none'; document.getElementById('editSection').style.display = 'block'; window.scrollTo(0, 0); 
         }
 
@@ -157,6 +152,16 @@
         document.getElementById('editForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitEdit');
+
+            // --- ตรวจสอบเงื่อนไขสถานที่เหมา (ตอนแก้ยอด) ---
+            const maoValue = Number(document.getElementById('e_mao').value) || 0;
+            const maoLoc = document.getElementById('e_mao_location').value.trim();
+            if (maoValue > 0 && maoLoc === "") {
+                alert("⚠️ กรุณาระบุ 'สถานที่เหมา' ด้วยครับ (เนื่องจากมีการกรอกยอดงานเหมา)");
+                document.getElementById('e_mao_location').focus();
+                return; // หยุดการทำงาน ไม่ให้ส่งฟอร์ม
+            }
+
             btn.disabled = true; btn.innerText = "กำลังบันทึก...";
             const payload = {
                 status: "แก้ไขยอด", uid: uid, row: document.getElementById('editRow').value, original_timestamp: document.getElementById('editTimestamp').value,
