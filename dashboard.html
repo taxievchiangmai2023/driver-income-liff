@@ -47,58 +47,12 @@
             </div>
         </div>
     </div>
-
-    <script>
-        const LIFF_ID = "2009404765-4vc029WP"; 
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
+<script>
+        // ⚠️ ใส่ LIFF ID และ GAS URL ของคุณ
+        const LIFF_ID = "ใส่_LIFF_ID_ของหน้าสรุปยอด"; 
+        const GAS_URL = "ใส่_WEB_APP_URL_ล่าสุด/exec";
         let userUid = "";
 
-
-        async function checkUser(uid) {
-            try {
-                const res = await fetch(`${GAS_URL}?uid=${uid}`); 
-                const data = await res.json();
-                
-                if (data.status === "success") {
-                    // กรณีเป็นคนขับที่ลงทะเบียนแล้วและสถานะ Active
-                    document.getElementById('driverName').innerText = data.name; 
-                    if(document.getElementById('driverPlate')) document.getElementById('driverPlate').innerText = data.plate;
-                    if(document.getElementById('driverType')) document.getElementById('driverType').innerText = data.type;
-                    
-                    if(document.getElementById('name')) document.getElementById('name').value = data.name; 
-                    if(document.getElementById('plate')) document.getElementById('plate').value = data.plate; 
-                    if(document.getElementById('type')) document.getElementById('type').value = data.type;
-                    
-                    if(data.type === "สนามบิน" && document.getElementById('airportSection')) {
-                        document.getElementById('airportSection').style.display = 'block';
-                    }
-                    
-                    document.getElementById('loader').style.display = 'none'; 
-                    
-                    // โชว์ฟอร์มของแต่ละหน้า (เช็คว่าหน้านั้นใช้ ID ฟอร์มชื่ออะไร)
-                    if(document.getElementById('reportForm')) document.getElementById('reportForm').style.display = 'block';
-                    if(document.getElementById('leaveForm')) document.getElementById('leaveForm').style.display = 'block';
-                    if(document.getElementById('app')) document.getElementById('app').style.display = 'block';
-                } else { 
-                    // 🔴 กรณีเป็นคนขับใหม่ หรือบัญชีถูกระงับ ให้โชว์ UID พร้อมปุ่มก๊อปปี้
-                    document.getElementById('loader').innerHTML = `
-                        <div class="alert alert-warning mt-4 text-center" style="border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                            <h5 class="fw-bold text-danger mb-3">⚠️ บัญชีของคุณยังไม่พร้อมใช้งาน</h5>
-                            <p class="small text-muted mb-2">กรุณาคัดลอกรหัสประจำตัว (UID) ด้านล่าง<br>ส่งให้แอดมินเพื่อลงทะเบียนเข้าสู่ระบบครับ</p>
-                            <div class="bg-white p-2 border rounded text-dark fw-bold mb-3" style="word-break: break-all; font-size: 0.9rem;">
-                                ${uid}
-                            </div>
-                            <button class="btn btn-dark w-100 fw-bold" style="border-radius: 10px;" onclick="navigator.clipboard.writeText('${uid}'); alert('คัดลอก UID สำเร็จ! นำไปวางในแชทให้แอดมินได้เลยครับ');">
-                                📋 คัดลอกรหัส UID
-                            </button>
-                        </div>
-                    `; 
-                }
-            } catch (err) { 
-                document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด กรุณาลองใหม่</p>`; 
-            }
-        }
-        
         async function main() {
             await liff.init({ liffId: LIFF_ID });
             if (!liff.isLoggedIn()) { liff.login(); return; }
@@ -106,7 +60,47 @@
             const now = new Date(); const yyyy = now.getFullYear(); let mm = now.getMonth() + 1;
             if (mm < 10) mm = '0' + mm;
             document.getElementById('monthSelector').value = `${yyyy}-${mm}`;
-            fetchSummary();
+            
+            // แวะตรวจสิทธิ์ก่อน
+            checkUser(userUid);
+        }
+
+        async function checkUser(userId) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${userId}`);
+                const data = await res.json();
+                
+                if (data.status === "success") {
+                    // ถ้าเป็นคนขับใช้งานได้ ค่อยดึงสรุปยอด
+                    fetchSummary();
+                } else {
+                    // 🔴 ถ้าเป็นคนใหม่ ซ่อนแถบสีเขียวด้านบน และโชว์บล็อกแทน
+                    document.querySelector('.dashboard-header').style.display = 'none';
+                    document.getElementById('app').style.display = 'none';
+                    
+                    document.getElementById('loader').style.display = 'block';
+                    document.getElementById('loader').innerHTML = `
+                        <div class="container pb-5">
+                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #dc3545; text-align: center;">
+                                <h4 class="fw-bold text-danger mb-3">⛔ ไม่มีสิทธิ์เข้าใช้งาน</h4>
+                                <p class="text-muted mb-2">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br>กรุณาคัดลอก UID ด้านล่างส่งให้แอดมินครับ</p>
+                                <div style="background-color: #f8f9fa; border-radius: 10px; padding: 15px; margin: 20px 0; word-break: break-all; font-family: monospace; font-size: 1.1rem; color: #13444B; border: 1px dashed #4EB1B3;">
+                                    ${userId}
+                                </div>
+                                <button class="btn btn-danger w-100 fw-bold py-2" style="border-radius: 10px;" onclick="copyMyUID('${userId}')">
+                                    📋 คัดลอก UID ส่งให้แอดมิน
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch(err) {
+                alert("เชื่อมต่อขัดข้อง");
+            }
+        }
+
+        function copyMyUID(uidText) {
+            navigator.clipboard.writeText(uidText).then(() => { alert('คัดลอก UID สำเร็จ! นำไปวางในแชทให้แอดมินได้เลยครับ'); }).catch(err => { alert('ไม่สามารถคัดลอกได้อัตโนมัติ กรุณาคลุมดำและคัดลอกเองครับ'); });
         }
 
         async function fetchSummary() {
@@ -123,7 +117,8 @@
                 }
             } catch (err) { alert("โหลดข้อมูลผิดพลาด"); }
         }
-        main();
+        window.onload = main;
     </script>
+
 </body>
 </html>
