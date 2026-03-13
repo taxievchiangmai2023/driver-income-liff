@@ -34,15 +34,29 @@
             <form id="form">
                 <input type="hidden" id="uid"><input type="hidden" id="name"><input type="hidden" id="plate"><input type="hidden" id="type">
                 
+                <div class="mb-3 border-bottom pb-3">
+                    <label class="form-label d-block text-dark">รูปแบบการหยุด</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="leaveType" id="leaveOne" value="1" checked onchange="toggleLeaveType()">
+                        <label class="form-check-label text-muted" for="leaveOne">หยุด 1 วัน</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="leaveType" id="leaveMultiple" value="M" onchange="toggleLeaveType()">
+                        <label class="form-check-label text-muted" for="leaveMultiple">หยุดหลายวัน</label>
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label class="form-label">เริ่มหยุดวันที่</label>
+                    <label class="form-label" id="startDateLabel">วันที่หยุด</label>
                     <input type="date" id="start_date" class="form-control" required>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">ถึงวันที่ (ถ้าหยุดวันเดียวให้ใส่วันเดิม)</label>
-                    <input type="date" id="end_date" class="form-control" required>
+
+                <div class="mb-3" id="endDateGroup" style="display: none;">
+                    <label class="form-label">ถึงวันที่</label>
+                    <input type="date" id="end_date" class="form-control">
                 </div>
-                <div class="mb-4">
+
+                <div class="mb-4 mt-2">
                     <label class="form-label">เหตุผลการหยุด</label>
                     <input type="text" id="leave_reason" class="form-control" placeholder="เช่น ธุระส่วนตัว, รถซ่อม" required>
                 </div>
@@ -61,32 +75,33 @@
             const profile = await liff.getProfile();
             document.getElementById('uid').value = profile.userId;
             
-            const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
+            const now = new Date(); const yyyy = now.getFullYear(); const mm = String(now.getMonth() + 1).padStart(2, '0'); const dd = String(now.getDate()).padStart(2, '0');
             const today = `${yyyy}-${mm}-${dd}`;
-            document.getElementById('start_date').value = today;
-            document.getElementById('end_date').value = today;
-
+            document.getElementById('start_date').value = today; document.getElementById('end_date').value = today;
             checkUser(profile.userId);
+        }
+
+        // ฟังก์ชันสลับโชว์ซ่อนช่องวันที่
+        function toggleLeaveType() {
+            const isMultiple = document.getElementById('leaveMultiple').checked;
+            document.getElementById('endDateGroup').style.display = isMultiple ? 'block' : 'none';
+            document.getElementById('startDateLabel').innerText = isMultiple ? 'เริ่มหยุดวันที่' : 'วันที่หยุด';
+            if(!isMultiple) {
+                document.getElementById('end_date').removeAttribute('required');
+            } else {
+                document.getElementById('end_date').setAttribute('required', 'true');
+            }
         }
 
         async function checkUser(uid) {
             try {
-                const res = await fetch(`${GAS_URL}?uid=${uid}`);
-                const data = await res.json();
+                const res = await fetch(`${GAS_URL}?uid=${uid}`); const data = await res.json();
                 if (data.status === "success") {
-                    document.getElementById('driverName').innerText = data.name;
-                    document.getElementById('driverPlate').innerText = data.plate;
-                    document.getElementById('name').value = data.name;
-                    document.getElementById('plate').value = data.plate;
-                    document.getElementById('type').value = data.type;
-                    
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('leaveForm').style.display = 'block';
+                    document.getElementById('driverName').innerText = data.name; document.getElementById('driverPlate').innerText = data.plate;
+                    document.getElementById('name').value = data.name; document.getElementById('plate').value = data.plate; document.getElementById('type').value = data.type;
+                    document.getElementById('loader').style.display = 'none'; document.getElementById('leaveForm').style.display = 'block';
                 }
-            } catch (err) { alert("ดึงข้อมูลผู้ใช้ล้มเหลว"); }
+            } catch (err) { alert("ดึงข้อมูลล้มเหลว"); }
         }
 
         document.getElementById('form').onsubmit = async (e) => {
@@ -94,23 +109,21 @@
             const btn = document.getElementById('btnSubmit');
             btn.disabled = true; btn.innerText = "กำลังบันทึก...";
 
+            const isMultiple = document.getElementById('leaveMultiple').checked;
+            const startDate = document.getElementById('start_date').value;
+            // ถ้าเลือก 1 วัน ให้จับยัด startDate ลงใน endDate ด้วยเลย เพื่อให้หลังบ้านทำงานถูก
+            const endDate = isMultiple ? document.getElementById('end_date').value : startDate;
+
             const payload = {
-                status: "หยุดงาน",
-                uid: document.getElementById('uid').value,
-                name: document.getElementById('name').value,
-                plate: document.getElementById('plate').value,
-                type: document.getElementById('type').value,
-                start_date: document.getElementById('start_date').value,
-                end_date: document.getElementById('end_date').value,
-                leave_reason: document.getElementById('leave_reason').value
+                status: "หยุดงาน", uid: document.getElementById('uid').value, name: document.getElementById('name').value,
+                plate: document.getElementById('plate').value, type: document.getElementById('type').value,
+                start_date: startDate, end_date: endDate, leave_reason: document.getElementById('leave_reason').value
             };
 
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await res.json();
-                if(result.status === "success") {
-                    alert("บันทึกวันหยุดสำเร็จ"); liff.closeWindow();
-                }
+                if(result.status === "success") { alert("บันทึกวันหยุดสำเร็จ"); liff.closeWindow(); }
             } catch (err) { alert("ขัดข้อง ลองใหม่ครับ"); }
             btn.disabled = false; btn.innerText = "บันทึกวันหยุด";
         };
