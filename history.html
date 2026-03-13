@@ -10,10 +10,16 @@
         body { background-color: #f0f8ff; font-family: 'Kanit', sans-serif; }
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 15px; }
         .btn-edit { background-color: #ffc107; color: #000; font-weight: bold; border-radius: 10px; }
-        .btn-submit { background-color: #0d6efd; color: #fff; font-weight: bold; border-radius: 10px; }
+        .btn-submit { background-color: #0d6efd; color: #fff; font-weight: bold; border-radius: 10px; padding: 12px;}
         .history-date { font-size: 1.1rem; font-weight: bold; color: #0d6efd; }
-        .badge-edit { font-size: 0.75rem; background-color: #dc3545; }
-        #editSection { display: none; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; max-height: 85vh; overflow-y: auto;}
+        .badge-edit { font-size: 0.75rem; background-color: #dc3545; color: white; padding: 3px 6px; border-radius: 5px;}
+        
+        /* สไตล์หน้าฟอร์มให้เหมือนหน้าส่งยอด */
+        #editSection { display: none; background: #f8f9fa; padding: 20px; position: absolute; top: 0; left: 0; right: 0; min-height: 100vh; z-index: 1000;}
+        .form-section { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #0d6efd;}
+        .form-label { font-weight: bold; font-size: 0.9rem; color: #495057; margin-bottom: 5px; }
+        .form-control { border-radius: 10px; background-color: #f1f3f5; border: 1px solid #dee2e6; }
+        .form-control:focus { background-color: #fff; border-color: #0d6efd; box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25); }
     </style>
 </head>
 <body class="p-3">
@@ -26,25 +32,47 @@
 
     <div id="editSection">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="text-danger fw-bold mb-0">✏️ แก้ไขยอด: <span id="editDateDisplay"></span></h5>
-            <button class="btn-close" onclick="closeEditForm()"></button>
+            <h5 class="text-primary fw-bold mb-0">✏️ แก้ไขยอด</h5>
+            <button class="btn btn-outline-danger btn-sm" onclick="closeEditForm()">ย้อนกลับ</button>
         </div>
+        
+        <div class="alert alert-info text-center py-2 mb-3">
+            <strong>วันที่: <span id="editDateDisplay"></span></strong>
+        </div>
+
         <form id="editForm">
             <input type="hidden" id="editRow">
             <input type="hidden" id="editTimestamp">
 
-            <div class="row g-2 mb-2">
-                <div class="col-6"><label class="small text-muted">Grab</label><input type="number" id="e_grab" class="form-control"></div>
-                <div class="col-6"><label class="small text-muted">Bolt</label><input type="number" id="e_bolt" class="form-control"></div>
-                <div class="col-6"><label class="small text-muted">Maxim</label><input type="number" id="e_maxim" class="form-control"></div>
-                <div class="col-6"><label class="small text-muted">InDriver</label><input type="number" id="e_indriver" class="form-control"></div>
-                <div class="col-6"><label class="small text-muted">LINE MAN</label><input type="number" id="e_lineman" class="form-control"></div>
-                <div class="col-6"><label class="small text-muted">งานนอก</label><input type="number" id="e_outside" class="form-control"></div>
-                <div class="col-6"><label class="small text-muted">เหมา</label><input type="number" id="e_mao" class="form-control"></div>
-                <div class="col-6"><label class="small text-muted">หักเข้าสนามบิน</label><input type="number" id="e_airport" class="form-control"></div>
+            <div class="form-section">
+                <h6 class="text-primary fw-bold mb-3">📱 รายได้จากแอปพลิเคชัน</h6>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Grab</label><input type="number" id="e_grab" class="form-control" placeholder="0"></div>
+                    <div class="col-6"><label class="form-label">Bolt</label><input type="number" id="e_bolt" class="form-control" placeholder="0"></div>
+                    <div class="col-6"><label class="form-label">Maxim</label><input type="number" id="e_maxim" class="form-control" placeholder="0"></div>
+                    <div class="col-6"><label class="form-label">InDriver</label><input type="number" id="e_indriver" class="form-control" placeholder="0"></div>
+                    <div class="col-6"><label class="form-label">LINE MAN</label><input type="number" id="e_lineman" class="form-control" placeholder="0"></div>
+                </div>
+            </div>
+
+            <div class="form-section" style="border-left-color: #ffc107;">
+                <h6 class="text-warning fw-bold mb-3">🚕 งานนอกระบบ / เหมา</h6>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">งานนอก</label><input type="number" id="e_outside" class="form-control" placeholder="0"></div>
+                    <div class="col-6"><label class="form-label">งานเหมา</label><input type="number" id="e_mao" class="form-control" placeholder="0"></div>
+                    <div class="col-12"><label class="form-label">สถานที่เหมา (ถ้ามี)</label><input type="text" id="e_mao_location" class="form-control" placeholder="เช่น เชียงใหม่-ปาย"></div>
+                </div>
+            </div>
+
+            <div class="form-section" style="border-left-color: #198754;">
+                <h6 class="text-success fw-bold mb-3">✈️ งานสนามบิน (เฉพาะรถสนามบิน)</h6>
+                <div class="mb-2">
+                    <label class="form-label">ยอดหักเข้าสนามบิน (ใส่สูตรได้ เช่น 150+150)</label>
+                    <input type="text" id="e_airport" class="form-control" placeholder="เช่น 150+150">
+                </div>
             </div>
             
-            <button type="submit" id="btnSubmitEdit" class="btn btn-submit w-100 mt-3 py-2">บันทึกยอดใหม่</button>
+            <button type="submit" id="btnSubmitEdit" class="btn btn-submit w-100 mt-2 mb-4">บันทึกยอดใหม่</button>
         </form>
     </div>
 
@@ -52,6 +80,7 @@
         const LIFF_ID = "2009404765-nezOU6Ri"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
         let uid = "";
+        let currentHistoryData = []; // สร้างตัวแปรเก็บข้อมูลเพื่อเอาไปดึงยอดเก่า
 
         async function main() {
             await liff.init({ liffId: LIFF_ID });
@@ -63,7 +92,6 @@
 
         async function fetchHistory() {
             try {
-                // ส่ง POST ไปขอประวัติ
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify({ status: "ดูประวัติ", uid: uid })
@@ -71,14 +99,15 @@
                 const data = await res.json();
 
                 if(data.status === "success" && data.history.length > 0) {
-                    renderHistory(data.history);
+                    currentHistoryData = data.history; // จำข้อมูลไว้ใช้ตอนกดแก้ไข
+                    renderHistory(currentHistoryData);
                 } else {
-                    document.getElementById('cardsContainer').innerHTML = "<p class='text-center text-muted'>ยังไม่มีประวัติการส่งยอดครับ</p>";
+                    document.getElementById('cardsContainer').innerHTML = "<p class='text-center text-muted mt-5'>ยังไม่มีประวัติการส่งยอดครับ</p>";
                 }
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('historyList').style.display = 'block';
             } catch(err) {
-                alert("โหลดประวัติไม่สำเร็จ");
+                alert("โหลดประวัติไม่สำเร็จ: " + err.message);
             }
         }
 
@@ -86,10 +115,8 @@
             const container = document.getElementById('cardsContainer');
             container.innerHTML = "";
             
-            historyArray.forEach(item => {
-                const editBadge = item.editCount > 0 ? `<span class="badge badge-edit ms-2">แก้ไขครั้งที่ ${item.editCount}</span>` : "";
-                
-                // แปลงวันที่ให้อ่านง่าย
+            historyArray.forEach((item, index) => {
+                const editBadge = item.editCount > 0 ? `<span class="badge-edit ms-2">แก้ไขครั้งที่ ${item.editCount}</span>` : "";
                 const dateObj = new Date(item.date);
                 const dateStr = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -97,16 +124,16 @@
                     <div class="card p-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="history-date">${dateStr} ${editBadge}</span>
-                            <button class="btn btn-sm btn-edit px-3" onclick="openEditForm(${item.row}, '${item.timestamp}', '${dateStr}')">แก้ไข</button>
+                            <button class="btn btn-sm btn-edit px-3" onclick="openEditForm(${index}, '${dateStr}')">แก้ไข</button>
                         </div>
                         <div class="row text-center mt-2">
                             <div class="col-6 border-end">
                                 <small class="text-muted d-block">ยอดรวมทั้งหมด</small>
-                                <strong class="fs-5 text-dark">${item.totalRev} ฿</strong>
+                                <strong class="fs-5 text-dark">${item.totalRev.toLocaleString()} ฿</strong>
                             </div>
                             <div class="col-6">
                                 <small class="text-muted d-block">คงเหลือ (รับจริง)</small>
-                                <strong class="fs-5 text-success">${item.driverNet} ฿</strong>
+                                <strong class="fs-5 text-success">${item.driverNet.toLocaleString()} ฿</strong>
                             </div>
                         </div>
                     </div>
@@ -115,18 +142,34 @@
             });
         }
 
-        function openEditForm(row, timestamp, dateStr) {
-            document.getElementById('editRow').value = row;
-            document.getElementById('editTimestamp').value = timestamp;
+        // ฟังก์ชันเปิดฟอร์ม พร้อม "ดึงยอดเก่ามาใส่" ให้โดยอัตโนมัติ
+        function openEditForm(index, dateStr) {
+            const item = currentHistoryData[index]; // ดึงข้อมูลของวันที่เรากดแก้ไข
+
+            document.getElementById('editRow').value = item.row;
+            document.getElementById('editTimestamp').value = item.timestamp;
             document.getElementById('editDateDisplay').innerText = dateStr;
             
-            // เคลียร์ค่าเก่าในฟอร์ม
-            document.querySelectorAll('#editForm input[type="number"]').forEach(input => input.value = "");
+            // ดึงค่ายอดเก่ามาใส่ในช่องกรอก (ถ้าเป็น 0 จะโชว์เป็นช่องว่างเพื่อให้พิมพ์ง่าย)
+            document.getElementById('e_grab').value = item.grab || "";
+            document.getElementById('e_bolt').value = item.bolt || "";
+            document.getElementById('e_maxim').value = item.maxim || "";
+            document.getElementById('e_indriver').value = item.indriver || "";
+            document.getElementById('e_lineman').value = item.lineman || "";
+            document.getElementById('e_outside').value = item.outside || "";
+            document.getElementById('e_mao').value = item.mao || "";
+            document.getElementById('e_mao_location').value = item.mao_location || "";
+            document.getElementById('e_airport').value = item.airport_calc || "";
+            
+            // สลับหน้าจอ
+            document.getElementById('historyList').style.display = 'none';
             document.getElementById('editSection').style.display = 'block';
+            window.scrollTo(0, 0); // เลื่อนจอขึ้นบนสุด
         }
 
         function closeEditForm() {
             document.getElementById('editSection').style.display = 'none';
+            document.getElementById('historyList').style.display = 'block';
         }
 
         document.getElementById('editForm').onsubmit = async (e) => {
@@ -147,6 +190,7 @@
                 lineman: document.getElementById('e_lineman').value,
                 outside: document.getElementById('e_outside').value,
                 mao: document.getElementById('e_mao').value,
+                mao_location: document.getElementById('e_mao_location').value,
                 airport_calc: document.getElementById('e_airport').value
             };
 
@@ -159,12 +203,12 @@
                     closeEditForm();
                     document.getElementById('loader').style.display = 'block';
                     document.getElementById('historyList').style.display = 'none';
-                    fetchHistory(); // โหลดข้อมูลใหม่
+                    fetchHistory(); // โหลดประวัติใหม่เพื่ออัปเดตตัวเลข
                 } else {
                     alert("แจ้งเตือน: " + result.message);
                 }
             } catch (err) {
-                alert("เชื่อมต่อขัดข้อง");
+                alert("เชื่อมต่อขัดข้อง: " + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerText = "บันทึกยอดใหม่";
