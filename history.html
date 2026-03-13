@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ประวัติและแก้ไขยอด - TaxiEV</title>
+    <title>ประวัติและแก้ไข - TaxiEV</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { background-color: #f0f8ff; font-family: 'Kanit', sans-serif; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 15px; }
-        .btn-edit { background-color: #ffc107; color: #000; font-weight: bold; border-radius: 10px; }
-        .btn-submit { background-color: #0d6efd; color: #fff; font-weight: bold; border-radius: 10px; padding: 12px;}
-        .history-date { font-size: 1.1rem; font-weight: bold; color: #0d6efd; }
-        .badge-edit { font-size: 0.75rem; background-color: #dc3545; color: white; padding: 3px 6px; border-radius: 5px;}
-        #editSection { display: none; background: #f8f9fa; padding: 20px; position: absolute; top: 0; left: 0; right: 0; min-height: 100vh; z-index: 1000;}
-        .form-section { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #0d6efd;}
-        .form-label { font-weight: bold; font-size: 0.9rem; color: #495057; margin-bottom: 5px; }
-        .form-control { border-radius: 10px; background-color: #f1f3f5; border: 1px solid #dee2e6; }
-        .form-control:focus { background-color: #fff; border-color: #0d6efd; box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25); }
+        :root { --brand-dark: #13444B; --brand-light: #4EB1B3; --bg-light: #f4f7f6; }
+        body { background-color: var(--bg-light); font-family: 'Kanit', sans-serif; padding-bottom: 30px;}
+        .brand-header { background: linear-gradient(135deg, var(--brand-dark), var(--brand-light)); color: white; padding: 25px 20px 35px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card-custom { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: none; margin-bottom: 12px; }
+        .btn-edit { background-color: #ffc107; color: #000; font-weight: bold; border-radius: 10px; font-size: 0.85rem;}
+        .btn-brand { background-color: var(--brand-dark); color: white; font-weight: bold; border-radius: 10px; padding: 12px; width: 100%; border:none;}
+        .history-date { font-size: 1.05rem; font-weight: bold; color: var(--brand-dark); }
+        .badge-edit { font-size: 0.7rem; background-color: #dc3545; color: white; padding: 3px 6px; border-radius: 5px;}
+        
+        #editSection { display: none; background: var(--bg-light); padding: 15px; position: absolute; top: 0; left: 0; right: 0; min-height: 100vh; z-index: 1000;}
+        .form-section { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid var(--brand-light);}
+        .form-label { font-weight: bold; font-size: 0.85rem; color: var(--brand-dark); margin-bottom: 5px; }
+        .form-control { border-radius: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; }
+        .form-control:focus { border-color: var(--brand-light); box-shadow: 0 0 0 0.2rem rgba(78, 177, 179, 0.25); }
     </style>
 </head>
-<body class="p-3">
-    <div id="loader" class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">กำลังดึงประวัติ...</p></div>
-
-    <div id="historyList" style="display: none; padding-bottom: 60px;">
-        <h4 class="text-primary fw-bold text-center mb-4">🕒 ประวัติการส่งยอด</h4>
-        <div id="cardsContainer"></div>
+<body>
+    <div id="historyList">
+        <div class="brand-header mb-4">
+            <h4 class="fw-bold mb-0">ประวัติการส่งยอด</h4>
+            <p class="mb-0 opacity-75 small">ดูย้อนหลัง 5 วันล่าสุด</p>
+        </div>
+        <div class="container">
+            <div id="loader" class="text-center py-5"><div class="spinner-border text-info"></div></div>
+            <div id="cardsContainer"></div>
+        </div>
     </div>
 
     <div id="editSection">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="text-primary fw-bold mb-0">✏️ แก้ไขยอด</h5>
-            <button class="btn btn-outline-danger btn-sm" onclick="closeEditForm()">ย้อนกลับ</button>
+            <h5 class="fw-bold mb-0" style="color: var(--brand-dark);">✏️ แก้ไขยอด</h5>
+            <button class="btn btn-outline-danger btn-sm" onclick="closeEditForm()">ยกเลิก</button>
         </div>
         
-        <div class="alert alert-info text-center py-2 mb-3">
+        <div class="alert alert-info text-center py-2 mb-3" style="background-color: white; border-color: var(--brand-light); color: var(--brand-dark);">
             <strong>วันที่: <span id="editDateDisplay"></span></strong>
         </div>
 
@@ -43,13 +50,13 @@
             <input type="hidden" id="editTimestamp">
 
             <div class="form-section">
-                <h6 class="text-primary fw-bold mb-3">📱 รายได้จากแอปพลิเคชัน</h6>
+                <h6 class="fw-bold mb-3" style="color: var(--brand-light);">📱 รายได้จากแอปพลิเคชัน</h6>
                 <div class="row g-2">
                     <div class="col-6"><label class="form-label">Grab</label><input type="number" id="e_grab" class="form-control" placeholder="0" step="any"></div>
                     <div class="col-6"><label class="form-label">Bolt</label><input type="number" id="e_bolt" class="form-control" placeholder="0" step="any"></div>
                     <div class="col-6"><label class="form-label">Maxim</label><input type="number" id="e_maxim" class="form-control" placeholder="0" step="any"></div>
                     <div class="col-6"><label class="form-label">InDriver</label><input type="number" id="e_indriver" class="form-control" placeholder="0" step="any"></div>
-                    <div class="col-6"><label class="form-label">LINE MAN</label><input type="number" id="e_lineman" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-12"><label class="form-label">LINE MAN</label><input type="number" id="e_lineman" class="form-control" placeholder="0" step="any"></div>
                 </div>
             </div>
 
@@ -63,39 +70,31 @@
             </div>
 
             <div class="form-section" id="airportSection" style="border-left-color: #198754; display: none;">
-                <h6 class="text-success fw-bold mb-3">✈️ งานสนามบิน (เฉพาะรถสนามบิน)</h6>
-                <div class="mb-2">
-                    <label class="form-label">ยอดหักเข้าสนามบิน (ใส่สูตรได้ เช่น 150+150)</label>
-                    <input type="text" id="e_airport" class="form-control" placeholder="เช่น 150+150">
-                </div>
+                <h6 class="text-success fw-bold mb-3">✈️ งานสนามบิน</h6>
+                <label class="form-label">ยอดหักเข้าสนามบิน (ใส่สูตรได้)</label>
+                <input type="text" id="e_airport" class="form-control" placeholder="เช่น 150+150">
             </div>
             
-            <button type="submit" id="btnSubmitEdit" class="btn btn-submit w-100 mt-2 mb-4">บันทึกยอดใหม่</button>
+            <button type="submit" id="btnSubmitEdit" class="btn btn-brand mt-2 shadow-sm">บันทึกยอดใหม่</button>
         </form>
     </div>
 
     <script>
         const LIFF_ID = "2009404765-nezOU6Ri"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
-        let uid = "";
-        let currentHistoryData = []; 
+        let uid = ""; let currentHistoryData = []; 
 
         async function main() {
             await liff.init({ liffId: LIFF_ID });
             if (!liff.isLoggedIn()) { liff.login(); return; }
-            
             uid = (await liff.getProfile()).userId;
             fetchHistory();
         }
 
         async function fetchHistory() {
             try {
-                const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ status: "ดูประวัติ", uid: uid })
-                });
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ status: "ดูประวัติ", uid: uid }) });
                 const data = await res.json();
-
                 if(data.status === "success" && data.history.length > 0) {
                     currentHistoryData = data.history; 
                     renderHistory(currentHistoryData);
@@ -103,121 +102,76 @@
                     document.getElementById('cardsContainer').innerHTML = "<p class='text-center text-muted mt-5'>ยังไม่มีประวัติการส่งยอดครับ</p>";
                 }
                 document.getElementById('loader').style.display = 'none';
-                document.getElementById('historyList').style.display = 'block';
-            } catch(err) {
-                alert("โหลดประวัติไม่สำเร็จ: " + err.message);
-            }
+            } catch(err) { alert("โหลดประวัติไม่สำเร็จ"); }
         }
 
         function renderHistory(historyArray) {
             const container = document.getElementById('cardsContainer');
             container.innerHTML = "";
-            
             historyArray.forEach((item, index) => {
                 const editBadge = item.editCount > 0 ? `<span class="badge-edit ms-2">แก้ไขครั้งที่ ${item.editCount}</span>` : "";
                 const dateObj = new Date(item.date);
                 const dateStr = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-
                 const card = `
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="card-custom">
+                        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
                             <span class="history-date">${dateStr} ${editBadge}</span>
                             <button class="btn btn-sm btn-edit px-3" onclick="openEditForm(${index}, '${dateStr}')">แก้ไข</button>
                         </div>
                         <div class="row text-center mt-2">
                             <div class="col-6 border-end">
-                                <small class="text-muted d-block">ยอดรวมทั้งหมด</small>
-                                <strong class="fs-5 text-dark">${item.totalRev.toLocaleString()} ฿</strong>
+                                <small class="text-muted d-block">ยอดรวม</small>
+                                <strong class="fs-6 text-dark">${item.totalRev.toLocaleString()} ฿</strong>
                             </div>
                             <div class="col-6">
-                                <small class="text-muted d-block">คงเหลือ (รับจริง)</small>
-                                <strong class="fs-5 text-success">${item.driverNet.toLocaleString()} ฿</strong>
+                                <small class="text-muted d-block">คงเหลือ</small>
+                                <strong class="fs-6" style="color: var(--brand-light);">${item.driverNet.toLocaleString()} ฿</strong>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 container.innerHTML += card;
             });
         }
 
         function openEditForm(index, dateStr) {
             const item = currentHistoryData[index]; 
-
             document.getElementById('editRow').value = item.row;
             document.getElementById('editTimestamp').value = item.timestamp;
             document.getElementById('editDateDisplay').innerText = dateStr;
+            document.getElementById('e_grab').value = item.grab || ""; document.getElementById('e_bolt').value = item.bolt || "";
+            document.getElementById('e_maxim').value = item.maxim || ""; document.getElementById('e_indriver').value = item.indriver || "";
+            document.getElementById('e_lineman').value = item.lineman || ""; document.getElementById('e_outside').value = item.outside || "";
+            document.getElementById('e_mao').value = item.mao || ""; document.getElementById('e_mao_location').value = item.mao_location || "";
             
-            document.getElementById('e_grab').value = item.grab || "";
-            document.getElementById('e_bolt').value = item.bolt || "";
-            document.getElementById('e_maxim').value = item.maxim || "";
-            document.getElementById('e_indriver').value = item.indriver || "";
-            document.getElementById('e_lineman').value = item.lineman || "";
-            document.getElementById('e_outside').value = item.outside || "";
-            document.getElementById('e_mao').value = item.mao || "";
-            document.getElementById('e_mao_location').value = item.mao_location || "";
-            
-            // เช็คประเภทรถเพื่อซ่อน/แสดงช่องกรอกสนามบิน
             if (item.type === "แอป") {
-                document.getElementById('airportSection').style.display = 'none';
-                document.getElementById('e_airport').value = ""; // เคลียร์ทิ้ง
+                document.getElementById('airportSection').style.display = 'none'; document.getElementById('e_airport').value = "";
             } else {
-                document.getElementById('airportSection').style.display = 'block';
-                document.getElementById('e_airport').value = item.airport_calc || "";
+                document.getElementById('airportSection').style.display = 'block'; document.getElementById('e_airport').value = item.airport_calc || "";
             }
             
-            document.getElementById('historyList').style.display = 'none';
-            document.getElementById('editSection').style.display = 'block';
-            window.scrollTo(0, 0); 
+            document.getElementById('historyList').style.display = 'none'; document.getElementById('editSection').style.display = 'block'; window.scrollTo(0, 0); 
         }
 
-        function closeEditForm() {
-            document.getElementById('editSection').style.display = 'none';
-            document.getElementById('historyList').style.display = 'block';
-        }
+        function closeEditForm() { document.getElementById('editSection').style.display = 'none'; document.getElementById('historyList').style.display = 'block'; }
 
         document.getElementById('editForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitEdit');
-            btn.disabled = true;
-            btn.innerText = "กำลังบันทึก...";
-
+            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
             const payload = {
-                status: "แก้ไขยอด",
-                uid: uid,
-                row: document.getElementById('editRow').value,
-                original_timestamp: document.getElementById('editTimestamp').value,
-                grab: document.getElementById('e_grab').value,
-                bolt: document.getElementById('e_bolt').value,
-                maxim: document.getElementById('e_maxim').value,
-                indriver: document.getElementById('e_indriver').value,
-                lineman: document.getElementById('e_lineman').value,
-                outside: document.getElementById('e_outside').value,
-                mao: document.getElementById('e_mao').value,
-                mao_location: document.getElementById('e_mao_location').value,
-                airport_calc: document.getElementById('e_airport').value
+                status: "แก้ไขยอด", uid: uid, row: document.getElementById('editRow').value, original_timestamp: document.getElementById('editTimestamp').value,
+                grab: document.getElementById('e_grab').value, bolt: document.getElementById('e_bolt').value, maxim: document.getElementById('e_maxim').value,
+                indriver: document.getElementById('e_indriver').value, lineman: document.getElementById('e_lineman').value, outside: document.getElementById('e_outside').value,
+                mao: document.getElementById('e_mao').value, mao_location: document.getElementById('e_mao_location').value, airport_calc: document.getElementById('e_airport').value
             };
-
             try {
-                const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    alert(`อัปเดตยอดสำเร็จ! (แก้ไขครั้งที่ ${result.editCount})`);
-                    closeEditForm();
-                    document.getElementById('loader').style.display = 'block';
-                    document.getElementById('historyList').style.display = 'none';
-                    fetchHistory(); 
-                } else {
-                    alert("แจ้งเตือน: " + result.message);
-                }
-            } catch (err) {
-                alert("เชื่อมต่อขัดข้อง: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "บันทึกยอดใหม่";
-            }
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.status === "success") { alert("อัปเดตยอดสำเร็จ!"); closeEditForm(); document.getElementById('loader').style.display = 'block'; document.getElementById('cardsContainer').innerHTML = ""; fetchHistory(); } 
+                else { alert("แจ้งเตือน: " + result.message); }
+            } catch (err) { alert("เชื่อมต่อขัดข้อง"); }
+            btn.disabled = false; btn.innerText = "บันทึกยอดใหม่";
         };
-
         window.onload = main;
     </script>
 </body>
