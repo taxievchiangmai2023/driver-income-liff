@@ -13,8 +13,6 @@
         .btn-submit { background-color: #0d6efd; color: #fff; font-weight: bold; border-radius: 10px; padding: 12px;}
         .history-date { font-size: 1.1rem; font-weight: bold; color: #0d6efd; }
         .badge-edit { font-size: 0.75rem; background-color: #dc3545; color: white; padding: 3px 6px; border-radius: 5px;}
-        
-        /* สไตล์หน้าฟอร์มให้เหมือนหน้าส่งยอด */
         #editSection { display: none; background: #f8f9fa; padding: 20px; position: absolute; top: 0; left: 0; right: 0; min-height: 100vh; z-index: 1000;}
         .form-section { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #0d6efd;}
         .form-label { font-weight: bold; font-size: 0.9rem; color: #495057; margin-bottom: 5px; }
@@ -47,24 +45,24 @@
             <div class="form-section">
                 <h6 class="text-primary fw-bold mb-3">📱 รายได้จากแอปพลิเคชัน</h6>
                 <div class="row g-2">
-                    <div class="col-6"><label class="form-label">Grab</label><input type="number" id="e_grab" class="form-control" placeholder="0"></div>
-                    <div class="col-6"><label class="form-label">Bolt</label><input type="number" id="e_bolt" class="form-control" placeholder="0"></div>
-                    <div class="col-6"><label class="form-label">Maxim</label><input type="number" id="e_maxim" class="form-control" placeholder="0"></div>
-                    <div class="col-6"><label class="form-label">InDriver</label><input type="number" id="e_indriver" class="form-control" placeholder="0"></div>
-                    <div class="col-6"><label class="form-label">LINE MAN</label><input type="number" id="e_lineman" class="form-control" placeholder="0"></div>
+                    <div class="col-6"><label class="form-label">Grab</label><input type="number" id="e_grab" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">Bolt</label><input type="number" id="e_bolt" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">Maxim</label><input type="number" id="e_maxim" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">InDriver</label><input type="number" id="e_indriver" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">LINE MAN</label><input type="number" id="e_lineman" class="form-control" placeholder="0" step="any"></div>
                 </div>
             </div>
 
             <div class="form-section" style="border-left-color: #ffc107;">
                 <h6 class="text-warning fw-bold mb-3">🚕 งานนอกระบบ / เหมา</h6>
                 <div class="row g-2">
-                    <div class="col-6"><label class="form-label">งานนอก</label><input type="number" id="e_outside" class="form-control" placeholder="0"></div>
-                    <div class="col-6"><label class="form-label">งานเหมา</label><input type="number" id="e_mao" class="form-control" placeholder="0"></div>
+                    <div class="col-6"><label class="form-label">งานนอก</label><input type="number" id="e_outside" class="form-control" placeholder="0" step="any"></div>
+                    <div class="col-6"><label class="form-label">งานเหมา</label><input type="number" id="e_mao" class="form-control" placeholder="0" step="any"></div>
                     <div class="col-12"><label class="form-label">สถานที่เหมา (ถ้ามี)</label><input type="text" id="e_mao_location" class="form-control" placeholder="เช่น เชียงใหม่-ปาย"></div>
                 </div>
             </div>
 
-            <div class="form-section" style="border-left-color: #198754;">
+            <div class="form-section" id="airportSection" style="border-left-color: #198754; display: none;">
                 <h6 class="text-success fw-bold mb-3">✈️ งานสนามบิน (เฉพาะรถสนามบิน)</h6>
                 <div class="mb-2">
                     <label class="form-label">ยอดหักเข้าสนามบิน (ใส่สูตรได้ เช่น 150+150)</label>
@@ -80,7 +78,7 @@
         const LIFF_ID = "2009404765-nezOU6Ri"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
         let uid = "";
-        let currentHistoryData = []; // สร้างตัวแปรเก็บข้อมูลเพื่อเอาไปดึงยอดเก่า
+        let currentHistoryData = []; 
 
         async function main() {
             await liff.init({ liffId: LIFF_ID });
@@ -99,7 +97,7 @@
                 const data = await res.json();
 
                 if(data.status === "success" && data.history.length > 0) {
-                    currentHistoryData = data.history; // จำข้อมูลไว้ใช้ตอนกดแก้ไข
+                    currentHistoryData = data.history; 
                     renderHistory(currentHistoryData);
                 } else {
                     document.getElementById('cardsContainer').innerHTML = "<p class='text-center text-muted mt-5'>ยังไม่มีประวัติการส่งยอดครับ</p>";
@@ -142,15 +140,13 @@
             });
         }
 
-        // ฟังก์ชันเปิดฟอร์ม พร้อม "ดึงยอดเก่ามาใส่" ให้โดยอัตโนมัติ
         function openEditForm(index, dateStr) {
-            const item = currentHistoryData[index]; // ดึงข้อมูลของวันที่เรากดแก้ไข
+            const item = currentHistoryData[index]; 
 
             document.getElementById('editRow').value = item.row;
             document.getElementById('editTimestamp').value = item.timestamp;
             document.getElementById('editDateDisplay').innerText = dateStr;
             
-            // ดึงค่ายอดเก่ามาใส่ในช่องกรอก (ถ้าเป็น 0 จะโชว์เป็นช่องว่างเพื่อให้พิมพ์ง่าย)
             document.getElementById('e_grab').value = item.grab || "";
             document.getElementById('e_bolt').value = item.bolt || "";
             document.getElementById('e_maxim').value = item.maxim || "";
@@ -159,12 +155,19 @@
             document.getElementById('e_outside').value = item.outside || "";
             document.getElementById('e_mao').value = item.mao || "";
             document.getElementById('e_mao_location').value = item.mao_location || "";
-            document.getElementById('e_airport').value = item.airport_calc || "";
             
-            // สลับหน้าจอ
+            // เช็คประเภทรถเพื่อซ่อน/แสดงช่องกรอกสนามบิน
+            if (item.type === "แอป") {
+                document.getElementById('airportSection').style.display = 'none';
+                document.getElementById('e_airport').value = ""; // เคลียร์ทิ้ง
+            } else {
+                document.getElementById('airportSection').style.display = 'block';
+                document.getElementById('e_airport').value = item.airport_calc || "";
+            }
+            
             document.getElementById('historyList').style.display = 'none';
             document.getElementById('editSection').style.display = 'block';
-            window.scrollTo(0, 0); // เลื่อนจอขึ้นบนสุด
+            window.scrollTo(0, 0); 
         }
 
         function closeEditForm() {
@@ -203,7 +206,7 @@
                     closeEditForm();
                     document.getElementById('loader').style.display = 'block';
                     document.getElementById('historyList').style.display = 'none';
-                    fetchHistory(); // โหลดประวัติใหม่เพื่ออัปเดตตัวเลข
+                    fetchHistory(); 
                 } else {
                     alert("แจ้งเตือน: " + result.message);
                 }
