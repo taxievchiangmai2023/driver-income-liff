@@ -113,26 +113,17 @@
                     if(document.getElementById('leaveForm')) document.getElementById('leaveForm').style.display = 'block';
                     if(document.getElementById('app')) document.getElementById('app').style.display = 'block';
                 } else { 
-                    // --- 🔴 บล็อกหน้าจอเมื่อเป็นคนขับใหม่ (ไม่แจก UID) ---
-                    if(document.getElementById('reportForm')) document.getElementById('reportForm').style.display = 'none';
-                    if(document.getElementById('leaveForm')) document.getElementById('leaveForm').style.display = 'none';
-                    if(document.getElementById('historyList')) document.getElementById('historyList').style.display = 'none';
-                    if(document.getElementById('editSection')) document.getElementById('editSection').style.display = 'none';
-                    
-                    // แจ้งเตือนให้ไปเอา UID ที่หน้าสรุปผลงาน
-                    document.getElementById('loader').style.display = 'block';
+                    // 🔴 กรณีเป็นคนขับใหม่ หรือบัญชีถูกระงับ ให้โชว์ UID พร้อมปุ่มก๊อปปี้
                     document.getElementById('loader').innerHTML = `
-                        <div class="container pb-5">
-                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; border-top: 5px solid #dc3545; text-align: center;">
-                                <h4 class="fw-bold text-danger mb-3">⛔ ไม่มีสิทธิ์เข้าใช้งาน</h4>
-                                <p class="text-muted mb-2">บัญชีของคุณยังไม่ได้รับการอนุมัติ</p>
-                                
-                                <div style="background-color: #fff3f3; border-radius: 10px; padding: 15px; margin: 20px 0; color: #dc3545; border: 1px dashed #dc3545;">
-                                    กรุณาไปที่เมนู<br>
-                                    <strong style="font-size: 1.2rem;">"สรุปผลงาน"</strong><br>
-                                    เพื่อคัดลอกรหัส UID<br>ส่งให้แอดมินลงทะเบียนก่อนใช้งานครับ
-                                </div>
+                        <div class="alert alert-warning mt-4 text-center" style="border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                            <h5 class="fw-bold text-danger mb-3">⚠️ บัญชีของคุณยังไม่พร้อมใช้งาน</h5>
+                            <p class="small text-muted mb-2">กรุณาคัดลอกรหัสประจำตัว (UID) ด้านล่าง<br>ส่งให้แอดมินเพื่อลงทะเบียนเข้าสู่ระบบครับ</p>
+                            <div class="bg-white p-2 border rounded text-dark fw-bold mb-3" style="word-break: break-all; font-size: 0.9rem;">
+                                ${uid}
                             </div>
+                            <button class="btn btn-dark w-100 fw-bold" style="border-radius: 10px;" onclick="navigator.clipboard.writeText('${uid}'); alert('คัดลอก UID สำเร็จ! นำไปวางในแชทให้แอดมินได้เลยครับ');">
+                                📋 คัดลอกรหัส UID
+                            </button>
                         </div>
                     `; 
                 }
@@ -140,7 +131,7 @@
                 document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด กรุณาลองใหม่</p>`; 
             }
         }
-
+        
         document.getElementById('reportForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
@@ -175,6 +166,7 @@
     </script>
 </body>
 </html>
+
 
 
 
