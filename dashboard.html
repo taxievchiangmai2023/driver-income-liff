@@ -71,10 +71,9 @@
                 const data = await res.json();
                 
                 if (data.status === "success") {
-                    // ถ้าเป็นคนขับใช้งานได้ ค่อยดึงสรุปยอด
                     fetchSummary();
                 } else {
-                    // 🔴 ถ้าเป็นคนใหม่ ซ่อนแถบสีเขียวด้านบน และโชว์บล็อกแทน
+                    // 🔴 ถ้าเป็นคนใหม่ ให้บล็อกและไล่ไปหน้าส่งยอด
                     document.querySelector('.dashboard-header').style.display = 'none';
                     document.getElementById('app').style.display = 'none';
                     
@@ -83,13 +82,7 @@
                         <div class="container pb-5">
                             <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #dc3545; text-align: center;">
                                 <h4 class="fw-bold text-danger mb-3">⛔ ไม่มีสิทธิ์เข้าใช้งาน</h4>
-                                <p class="text-muted mb-2">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br>กรุณาคัดลอก UID ด้านล่างส่งให้แอดมินครับ</p>
-                                <div style="background-color: #f8f9fa; border-radius: 10px; padding: 15px; margin: 20px 0; word-break: break-all; font-family: monospace; font-size: 1.1rem; color: #13444B; border: 1px dashed #4EB1B3;">
-                                    ${userId}
-                                </div>
-                                <button class="btn btn-danger w-100 fw-bold py-2" style="border-radius: 10px;" onclick="copyMyUID('${userId}')">
-                                    📋 คัดลอก UID ส่งให้แอดมิน
-                                </button>
+                                <p class="text-muted mb-0">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <b>"ส่งยอดรายวัน"</b> <br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินลงทะเบียนก่อนเข้าใช้งานเมนูนี้ครับ</p>
                             </div>
                         </div>
                     `;
