@@ -81,75 +81,57 @@
             if (!liff.isLoggedIn()) { liff.login(); return; }
             const profile = await liff.getProfile();
             document.getElementById('uid').value = profile.userId;
-            
-            // Set Default Date
-            const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
+            const now = new Date(); const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0'); const dd = String(now.getDate()).padStart(2, '0');
             document.getElementById('report_date').value = `${yyyy}-${mm}-${dd}`;
-
             checkUser(profile.userId);
         }
 
         async function checkUser(uid) {
             try {
-                const res = await fetch(`${GAS_URL}?uid=${uid}`);
-                const data = await res.json();
-                
+                const res = await fetch(`${GAS_URL}?uid=${uid}`); const data = await res.json();
                 if (data.status === "success") {
-                    document.getElementById('driverName').innerText = data.name;
-                    document.getElementById('driverPlate').innerText = data.plate;
-                    document.getElementById('driverType').innerText = data.type;
-                    
-                    document.getElementById('name').value = data.name;
-                    document.getElementById('plate').value = data.plate;
-                    document.getElementById('type').value = data.type;
-                    
+                    document.getElementById('driverName').innerText = data.name; document.getElementById('driverPlate').innerText = data.plate;
+                    document.getElementById('driverType').innerText = data.type; document.getElementById('name').value = data.name;
+                    document.getElementById('plate').value = data.plate; document.getElementById('type').value = data.type;
                     if(data.type === "สนามบิน") document.getElementById('airportSection').style.display = 'block';
-                    
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('reportForm').style.display = 'block';
-                } else {
-                    document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold">ไม่มีสิทธิ์ใช้งาน หรือบัญชีถูกระงับ</p>`;
-                }
-            } catch (err) { alert("เชื่อมต่อผิดพลาด กรุณาลองใหม่"); }
+                    document.getElementById('loader').style.display = 'none'; document.getElementById('reportForm').style.display = 'block';
+                } else { document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold">ไม่มีสิทธิ์ใช้งาน หรือบัญชีถูกระงับ</p>`; }
+            } catch (err) { alert("เชื่อมต่อผิดพลาด"); }
         }
 
         document.getElementById('reportForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
+
+            // --- ตรวจสอบเงื่อนไขสถานที่เหมา ---
+            const maoValue = Number(document.getElementById('mao').value) || 0;
+            const maoLoc = document.getElementById('mao_location').value.trim();
+            if (maoValue > 0 && maoLoc === "") {
+                alert("⚠️ กรุณาระบุ 'สถานที่เหมา' ด้วยครับ (เนื่องจากมีการกรอกยอดงานเหมา)");
+                document.getElementById('mao_location').focus();
+                return; // หยุดการทำงาน ไม่ให้ส่งฟอร์ม
+            }
+
             btn.disabled = true; btn.innerText = "กำลังบันทึก...";
 
             const payload = {
-                uid: document.getElementById('uid').value,
-                name: document.getElementById('name').value,
-                plate: document.getElementById('plate').value,
-                type: document.getElementById('type').value,
-                report_date: document.getElementById('report_date').value,
-                grab: document.getElementById('grab').value,
-                bolt: document.getElementById('bolt').value,
-                maxim: document.getElementById('maxim').value,
-                indriver: document.getElementById('indriver').value,
-                lineman: document.getElementById('lineman').value,
-                outside: document.getElementById('outside').value,
-                mao: document.getElementById('mao').value,
-                mao_location: document.getElementById('mao_location').value,
-                airport_calc: document.getElementById('airport_calc').value
+                uid: document.getElementById('uid').value, name: document.getElementById('name').value, plate: document.getElementById('plate').value,
+                type: document.getElementById('type').value, report_date: document.getElementById('report_date').value, grab: document.getElementById('grab').value,
+                bolt: document.getElementById('bolt').value, maxim: document.getElementById('maxim').value, indriver: document.getElementById('indriver').value,
+                lineman: document.getElementById('lineman').value, outside: document.getElementById('outside').value, mao: document.getElementById('mao').value,
+                mao_location: document.getElementById('mao_location').value, airport_calc: document.getElementById('airport_calc').value
             };
 
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await res.json();
-                if(result.status === "success") {
-                    alert("บันทึกยอดสำเร็จ กรุณาแนบสลิปในแชทครับ");
-                    liff.closeWindow();
-                } else { alert("เกิดข้อผิดพลาด: " + result.message); }
-            } catch (err) { alert("ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่"); }
-            
-            btn.disabled = false; btn.innerText = "ส่งยอดรายวัน";
+                if(result.status === "success") { alert("บันทึกยอดสำเร็จ กรุณาแนบสลิปในแชทครับ"); liff.closeWindow(); } 
+                else { alert("เกิดข้อผิดพลาด: " + result.message); btn.disabled = false; btn.innerText = "ส่งยอดรายวัน"; }
+            } catch (err) { alert("ส่งข้อมูลไม่สำเร็จ"); btn.disabled = false; btn.innerText = "ส่งยอดรายวัน"; }
         };
         main();
     </script>
 </body>
 </html>
+
