@@ -93,6 +93,7 @@
             }
         }
 
+
         async function checkUser(userId) {
             try {
                 const res = await fetch(`${GAS_URL}?uid=${userId}`); 
@@ -109,20 +110,32 @@
                     
                     document.getElementById('loader').style.display = 'none'; 
                     document.getElementById('leaveForm').style.display = 'block';
-                } else { 
-                    // 🔴 ถ้าเป็นคนใหม่ ให้บล็อกและไล่ไปหน้าส่งยอด
+                    
+                } else if (data.status === "suspended") {
+                    // 🚫 บัญชีถูกระงับ (InActive)
                     document.getElementById('leaveForm').style.display = 'none';
                     document.getElementById('loader').innerHTML = `
                         <div class="container pb-5 mt-4">
                             <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #dc3545; text-align: center;">
-                                <h4 class="fw-bold text-danger mb-3">⛔ ไม่มีสิทธิ์เข้าใช้งาน</h4>
-                                <p class="text-muted mb-0">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <b>"ส่งยอดรายวัน"</b> <br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินลงทะเบียนก่อนเข้าใช้งานเมนูนี้ครับ</p>
+                                <h4 class="fw-bold text-danger mb-3">🚫 บัญชีถูกระงับ</h4>
+                                <p class="text-muted mb-0">ผู้ใช้ถูกระงับการใช้งาน<br>กรุณาติดต่อแอดมินหรือผู้ดูแลระบบครับ</p>
+                            </div>
+                        </div>
+                    `; 
+                } else { 
+                    // 🟡 คนใหม่ ไล่ไปหน้าส่งยอด
+                    document.getElementById('leaveForm').style.display = 'none';
+                    document.getElementById('loader').innerHTML = `
+                        <div class="container pb-5 mt-4">
+                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #ffc107; text-align: center;">
+                                <h4 class="fw-bold text-warning mb-3">⚠️ ไม่มีสิทธิ์เข้าใช้งาน</h4>
+                                <p class="text-muted mb-0">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <b>"ส่งยอดรายวัน"</b> <br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินครับ</p>
                             </div>
                         </div>
                     `; 
                 }
             } catch (err) { 
-                document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold text-center mt-4">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด กรุณาลองใหม่</p>`; 
+                document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold text-center mt-4">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด</p>`; 
             }
         }
 
