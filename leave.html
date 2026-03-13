@@ -57,8 +57,8 @@
                 </div>
 
                 <div class="mb-4 mt-2">
-                    <label class="form-label">เหตุผลการหยุด</label>
-                    <input type="text" id="leave_reason" class="form-control" placeholder="เช่น ธุระส่วนตัว, รถซ่อม" required>
+                    <label class="form-label">เหตุผลการหยุด <span class="text-muted fw-normal">(ไม่ระบุได้)</span></label>
+                    <input type="text" id="leave_reason" class="form-control" placeholder="เช่น ธุระส่วนตัว, รถซ่อม">
                 </div>
                 <button type="submit" id="btnSubmit" class="btn btn-brand shadow-sm">บันทึกวันหยุด</button>
             </form>
@@ -66,6 +66,7 @@
     </div>
 
     <script>
+        // ⚠️ อย่าลืมใส่ LIFF ID และ GAS URL ของคุณกลับเข้าไปด้วยนะครับ
         const LIFF_ID = "2009404765-GgNvDh2o"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
         
@@ -81,7 +82,6 @@
             checkUser(profile.userId);
         }
 
-        // ฟังก์ชันสลับโชว์ซ่อนช่องวันที่
         function toggleLeaveType() {
             const isMultiple = document.getElementById('leaveMultiple').checked;
             document.getElementById('endDateGroup').style.display = isMultiple ? 'block' : 'none';
@@ -111,13 +111,23 @@
 
             const isMultiple = document.getElementById('leaveMultiple').checked;
             const startDate = document.getElementById('start_date').value;
-            // ถ้าเลือก 1 วัน ให้จับยัด startDate ลงใน endDate ด้วยเลย เพื่อให้หลังบ้านทำงานถูก
             const endDate = isMultiple ? document.getElementById('end_date').value : startDate;
 
+            // --- ส่วนที่แก้ไข: เช็คว่ากรอกเหตุผลไหม ถ้าไม่กรอกให้ใส่ว่า "ไม่ได้ระบุเหตุผล" ---
+            let reasonInput = document.getElementById('leave_reason').value.trim();
+            if (reasonInput === "") {
+                reasonInput = "ไม่ได้ระบุเหตุผล";
+            }
+
             const payload = {
-                status: "หยุดงาน", uid: document.getElementById('uid').value, name: document.getElementById('name').value,
-                plate: document.getElementById('plate').value, type: document.getElementById('type').value,
-                start_date: startDate, end_date: endDate, leave_reason: document.getElementById('leave_reason').value
+                status: "หยุดงาน", 
+                uid: document.getElementById('uid').value, 
+                name: document.getElementById('name').value,
+                plate: document.getElementById('plate').value, 
+                type: document.getElementById('type').value,
+                start_date: startDate, 
+                end_date: endDate, 
+                leave_reason: reasonInput // ส่งตัวแปรที่เช็คแล้วไปให้หลังบ้าน
             };
 
             try {
