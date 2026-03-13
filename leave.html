@@ -7,151 +7,113 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { background-color: #fce8e6; font-family: 'Kanit', sans-serif; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.15); }
-        .btn-danger { font-weight: bold; border-radius: 10px; padding: 12px; }
-        .form-label { font-size: 0.9rem; font-weight: bold; color: #555; }
-        .radio-group { background: #fff; padding: 10px; border-radius: 10px; border: 1px solid #dee2e6; mb-3;}
+        :root { --brand-dark: #13444B; --brand-light: #4EB1B3; --bg-light: #f4f7f6; }
+        body { background-color: var(--bg-light); font-family: 'Kanit', sans-serif; }
+        .brand-header { background: linear-gradient(135deg, var(--brand-dark), var(--brand-light)); color: white; padding: 30px 20px 40px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card-custom { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: none; margin-top: -20px; position: relative; z-index: 10; }
+        .form-label { font-weight: bold; color: var(--brand-dark); }
+        .form-control { border-radius: 10px; background-color: #f8f9fa; }
+        .form-control:focus { border-color: var(--brand-light); box-shadow: 0 0 0 0.2rem rgba(78, 177, 179, 0.25); }
+        .btn-brand { background-color: #dc3545; color: white; border-radius: 10px; padding: 12px; font-weight: bold; width: 100%; border: none; }
     </style>
 </head>
-<body class="p-3">
-    <div id="loader" class="text-center py-5"><div class="spinner-border text-danger"></div><p class="mt-2 text-muted">กำลังโหลดข้อมูล...</p></div>
+<body>
+    <div class="brand-header">
+        <h4 class="fw-bold mb-1">แจ้งหยุดงาน / ลาพัก</h4>
+        <p class="mb-0 opacity-75 small">ข้อมูลจะถูกบันทึกลงปฏิทินอัตโนมัติ</p>
+    </div>
 
-    <div id="app" class="card p-4" style="display:none;">
-        <h4 class="text-danger fw-bold text-center mb-3">📅 แจ้งหยุดงาน</h4>
-        <div class="alert alert-light border text-center p-2 mb-3">
-            <span id="driverName" class="fw-bold fs-5 text-dark">---</span><br>
-            <span id="driverPlate" class="badge bg-secondary">---</span>
-        </div>
-
-        <form id="leaveForm">
-            <div class="radio-group mb-3">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="leaveType" id="typeSingle" value="single" checked onchange="toggleDateInputs()">
-                    <label class="form-check-label text-danger fw-bold" for="typeSingle">หยุด 1 วัน</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="leaveType" id="typeMultiple" value="multiple" onchange="toggleDateInputs()">
-                    <label class="form-check-label text-danger fw-bold" for="typeMultiple">หยุดหลายวัน</label>
-                </div>
+    <div class="container">
+        <div id="loader" class="text-center py-5 mt-4"><div class="spinner-border text-danger"></div></div>
+        
+        <div class="card-custom" id="leaveForm" style="display:none;">
+            <div class="text-center mb-4 border-bottom pb-3">
+                <h5 class="fw-bold text-dark mb-0" id="driverName">...</h5>
+                <small class="text-muted" id="driverPlate">...</small>
             </div>
-
-            <div id="singleDateSection" class="mb-3">
-                <label class="form-label">วันที่หยุด</label>
-                <input type="date" id="singleDate" class="form-control">
-            </div>
-
-            <div id="multipleDateSection" class="row mb-3" style="display:none;">
-                <div class="col-6">
+            <form id="form">
+                <input type="hidden" id="uid"><input type="hidden" id="name"><input type="hidden" id="plate"><input type="hidden" id="type">
+                
+                <div class="mb-3">
                     <label class="form-label">เริ่มหยุดวันที่</label>
-                    <input type="date" id="startDate" class="form-control">
+                    <input type="date" id="start_date" class="form-control" required>
                 </div>
-                <div class="col-6">
-                    <label class="form-label">ถึงวันที่</label>
-                    <input type="date" id="endDate" class="form-control">
+                <div class="mb-3">
+                    <label class="form-label">ถึงวันที่ (ถ้าหยุดวันเดียวให้ใส่วันเดิม)</label>
+                    <input type="date" id="end_date" class="form-control" required>
                 </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label">เหตุผลการหยุด</label>
-                <textarea id="reason" class="form-control" rows="2" placeholder="เช่น ธุระส่วนตัว, พักผ่อน, ป่วย"></textarea>
-            </div>
-            
-            <button type="submit" id="btnSubmit" class="btn btn-danger w-100">ยืนยันการแจ้งหยุด</button>
-        </form>
+                <div class="mb-4">
+                    <label class="form-label">เหตุผลการหยุด</label>
+                    <input type="text" id="leave_reason" class="form-control" placeholder="เช่น ธุระส่วนตัว, รถซ่อม" required>
+                </div>
+                <button type="submit" id="btnSubmit" class="btn btn-brand shadow-sm">บันทึกวันหยุด</button>
+            </form>
+        </div>
     </div>
 
     <script>
         const LIFF_ID = "2009404765-GgNvDh2o"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
-        let driverData = {};
-
-        // ฟังก์ชันสลับหน้าจอเลือกวันที่
-        function toggleDateInputs() {
-            const isSingle = document.getElementById('typeSingle').checked;
-            document.getElementById('singleDateSection').style.display = isSingle ? 'block' : 'none';
-            document.getElementById('multipleDateSection').style.display = isSingle ? 'none' : 'flex';
-        }
-
+        
         async function main() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) { liff.login(); return; }
-                
-                const profile = await liff.getProfile();
-                const res = await fetch(`${GAS_URL}?uid=${profile.userId}`);
-                driverData = await res.json();
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            const profile = await liff.getProfile();
+            document.getElementById('uid').value = profile.userId;
+            
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const today = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('start_date').value = today;
+            document.getElementById('end_date').value = today;
 
-                if(driverData.status === "success") {
-                    document.getElementById('driverName').innerText = driverData.name;
-                    document.getElementById('driverPlate').innerText = driverData.plate;
-                    
-                    // ตั้งค่าเริ่มต้นเป็นวันนี้
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('singleDate').value = today;
-                    document.getElementById('startDate').value = today;
-                    document.getElementById('endDate').value = today;
-
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
-                } else {
-                    alert("ไม่พบข้อมูลผู้ใช้งาน กรุณาติดต่อแอดมิน");
-                    liff.closeWindow();
-                }
-            } catch (err) {
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-            }
+            checkUser(profile.userId);
         }
 
-        document.getElementById('leaveForm').onsubmit = async (e) => {
+        async function checkUser(uid) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${uid}`);
+                const data = await res.json();
+                if (data.status === "success") {
+                    document.getElementById('driverName').innerText = data.name;
+                    document.getElementById('driverPlate').innerText = data.plate;
+                    document.getElementById('name').value = data.name;
+                    document.getElementById('plate').value = data.plate;
+                    document.getElementById('type').value = data.type;
+                    
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('leaveForm').style.display = 'block';
+                }
+            } catch (err) { alert("ดึงข้อมูลผู้ใช้ล้มเหลว"); }
+        }
+
+        document.getElementById('form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
-            const isSingle = document.getElementById('typeSingle').checked;
-            
-            // กำหนดวันที่เริ่มและสิ้นสุดตามตัวเลือก
-            const start = isSingle ? document.getElementById('singleDate').value : document.getElementById('startDate').value;
-            const end = isSingle ? document.getElementById('singleDate').value : document.getElementById('endDate').value;
-            
-            if(!start || !end) { alert("กรุณาระบุวันที่"); return; }
-            if(new Date(start) > new Date(end)) { alert("วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด"); return; }
-
-            btn.disabled = true;
-            btn.innerText = "กำลังบันทึกข้อมูล...";
+            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
 
             const payload = {
                 status: "หยุดงาน",
-                uid: (await liff.getProfile()).userId,
-                name: driverData.name,
-                plate: driverData.plate,
-                type: driverData.type,
-                start_date: start,
-                end_date: end,
-                leave_reason: document.getElementById('reason').value || "ไม่ได้ระบุเหตุผล"
+                uid: document.getElementById('uid').value,
+                name: document.getElementById('name').value,
+                plate: document.getElementById('plate').value,
+                type: document.getElementById('type').value,
+                start_date: document.getElementById('start_date').value,
+                end_date: document.getElementById('end_date').value,
+                leave_reason: document.getElementById('leave_reason').value
             };
 
             try {
-                // ส่งข้อมูลไปที่ GAS
-                const response = await fetch(GAS_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify(payload) 
-                });
-                
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    alert("บันทึกวันหยุดลงระบบเรียบร้อยแล้ว!");
-                } else {
-                    // ถ้าหลังบ้านมี Error จะเด้งบอกตรงนี้เลย
-                    alert("ระบบแจ้งเตือน: " + result.message); 
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if(result.status === "success") {
+                    alert("บันทึกวันหยุดสำเร็จ"); liff.closeWindow();
                 }
-                liff.closeWindow();
-
-            } catch(err) {
-                alert("การส่งข้อมูลล้มเหลว กรุณาตรวจสอบ Executions ใน Apps Script");
-                console.error(err);
-                liff.closeWindow();
-            }
-        }
+            } catch (err) { alert("ขัดข้อง ลองใหม่ครับ"); }
+            btn.disabled = false; btn.innerText = "บันทึกวันหยุด";
+        };
         main();
     </script>
 </body>
