@@ -65,8 +65,8 @@
         </div>
     </div>
 
-    <script>
-        // ⚠️ อย่าลืมใส่ LIFF ID และ GAS URL ของคุณกลับเข้าไปด้วยนะครับ
+<script>
+        // ⚠️ อย่าลืมใส่ LIFF ID และ GAS URL ของคุณนะครับ
         const LIFF_ID = "2009404765-GgNvDh2o"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
         
@@ -93,13 +93,13 @@
             }
         }
 
-
         async function checkUser(userId) {
             try {
                 const res = await fetch(`${GAS_URL}?uid=${userId}`); 
                 const data = await res.json();
                 
                 if (data.status === "success") {
+                    // 🟢 ใช้งานได้ปกติ
                     document.getElementById('driverName').innerText = data.name; 
                     if(document.getElementById('driverPlate')) document.getElementById('driverPlate').innerText = data.plate;
                     if(document.getElementById('driverType')) document.getElementById('driverType').innerText = data.type;
@@ -148,21 +148,13 @@
             const startDate = document.getElementById('start_date').value;
             const endDate = isMultiple ? document.getElementById('end_date').value : startDate;
 
-            // --- ส่วนที่แก้ไข: เช็คว่ากรอกเหตุผลไหม ถ้าไม่กรอกให้ใส่ว่า "ไม่ได้ระบุเหตุผล" ---
             let reasonInput = document.getElementById('leave_reason').value.trim();
-            if (reasonInput === "") {
-                reasonInput = "ไม่ได้ระบุเหตุผล";
-            }
+            if (reasonInput === "") { reasonInput = "ไม่ได้ระบุเหตุผล"; }
 
             const payload = {
-                status: "หยุดงาน", 
-                uid: document.getElementById('uid').value, 
-                name: document.getElementById('name').value,
-                plate: document.getElementById('plate').value, 
-                type: document.getElementById('type').value,
-                start_date: startDate, 
-                end_date: endDate, 
-                leave_reason: reasonInput // ส่งตัวแปรที่เช็คแล้วไปให้หลังบ้าน
+                status: "หยุดงาน", uid: document.getElementById('uid').value, name: document.getElementById('name').value,
+                plate: document.getElementById('plate').value, type: document.getElementById('type').value,
+                start_date: startDate, end_date: endDate, leave_reason: reasonInput
             };
 
             try {
