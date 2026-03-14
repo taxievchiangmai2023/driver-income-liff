@@ -138,26 +138,34 @@
             }
         }
 
-        // ฟังก์ชันช่วยคัดลอก (อัปเดตใหม่ให้รองรับเบราว์เซอร์ของ LINE 100%)
+
+        // ฟังก์ชันช่วยคัดลอก (แก้ปัญหาแป้นพิมพ์เด้ง)
         function copyMyUID(uidText) {
-            // 1. สร้างกล่องข้อความจำลองขึ้นมาซ่อนไว้
-            var tempInput = document.createElement("input");
+            // 1. สร้างกล่องข้อความจำลองแบบ textarea
+            var tempInput = document.createElement("textarea");
             tempInput.value = uidText;
+            
+            // 2. 🌟 หัวใจสำคัญ: สั่งให้อ่านได้อย่างเดียว (ป้องกันแป้นพิมพ์เด้ง)
+            tempInput.setAttribute("readonly", ""); 
+            
+            // 3. ซ่อนกล่องไว้ขอบจอ เพื่อไม่ให้หน้าเว็บกระตุก
+            tempInput.style.position = "absolute";
+            tempInput.style.left = "-9999px";
+            
             document.body.appendChild(tempInput);
             
-            // 2. สั่งคลุมดำข้อความในกล่อง
+            // 4. สั่งคลุมดำและคัดลอก
             tempInput.select();
             tempInput.setSelectionRange(0, 99999); // บังคับคลุมดำสำหรับมือถือ
             
-            // 3. สั่งคัดลอกลง Clipboard
             try {
                 document.execCommand("copy");
                 alert("📋 คัดลอก UID สำเร็จ!\nนำไปกดยืนยันส่งในแชทให้แอดมินได้เลยครับ");
             } catch (err) {
-                alert("ระบบมือถือไม่อนุญาตให้คัดลอกอัตโนมัติ กรุณาคลุมดำที่ตัวอักษรแล้วกดคัดลอกเองนะครับ");
+                alert("ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคลุมดำที่ตัวอักษรแล้วกดคัดลอกเองนะครับ");
             }
             
-            // 4. ลบกล่องข้อความจำลองทิ้ง
+            // 5. ลบกล่องทิ้ง
             document.body.removeChild(tempInput);
         }
         
