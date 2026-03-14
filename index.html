@@ -137,6 +137,29 @@
                 document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold text-center mt-4">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด</p>`; 
             }
         }
+
+        // ฟังก์ชันช่วยคัดลอก (อัปเดตใหม่ให้รองรับเบราว์เซอร์ของ LINE 100%)
+        function copyMyUID(uidText) {
+            // 1. สร้างกล่องข้อความจำลองขึ้นมาซ่อนไว้
+            var tempInput = document.createElement("input");
+            tempInput.value = uidText;
+            document.body.appendChild(tempInput);
+            
+            // 2. สั่งคลุมดำข้อความในกล่อง
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999); // บังคับคลุมดำสำหรับมือถือ
+            
+            // 3. สั่งคัดลอกลง Clipboard
+            try {
+                document.execCommand("copy");
+                alert("📋 คัดลอก UID สำเร็จ!\nนำไปกดยืนยันส่งในแชทให้แอดมินได้เลยครับ");
+            } catch (err) {
+                alert("ระบบมือถือไม่อนุญาตให้คัดลอกอัตโนมัติ กรุณาคลุมดำที่ตัวอักษรแล้วกดคัดลอกเองนะครับ");
+            }
+            
+            // 4. ลบกล่องข้อความจำลองทิ้ง
+            document.body.removeChild(tempInput);
+        }
         
         document.getElementById('reportForm').onsubmit = async (e) => {
             e.preventDefault();
