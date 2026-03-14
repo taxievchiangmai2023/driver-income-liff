@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ตารางวันหยุด - TaxiEV</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        :root { --brand-dark: #13444B; --brand-light: #4EB1B3; --bg-light: #f4f7f6; }
+        body { background-color: var(--bg-light); font-family: 'Kanit', sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
+        .brand-header { background: linear-gradient(135deg, var(--brand-dark), var(--brand-light)); color: white; padding: 25px 20px 35px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .iframe-container { flex-grow: 1; padding: 15px; margin-top: -20px; position: relative; z-index: 10; }
+        .iframe-wrapper { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); height: 100%; border: 4px solid white; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+    <div class="brand-header">
+        <h4 class="fw-bold mb-1">📅 ตารางวันหยุด / ลาพัก</h4>
+        <p class="mb-0 opacity-75 small">ตรวจสอบคิวหยุดของเพื่อนร่วมงาน</p>
+    </div>
+
+    <div id="loader" class="text-center py-5 mt-4">
+        <div class="spinner-border text-info"></div>
+        <p class="mt-2 text-muted">กำลังตรวจสอบสิทธิ์...</p>
+    </div>
+
+    <div id="calendarContent" style="display: none; flex-grow: 1;">
+        <div class="iframe-container">
+            <div class="iframe-wrapper">
+                <iframe src="https://calendar.google.com/calendar/embed?src=7941d904350987cb07ead5cbf7e90b37de78db454e7ca30a80043d17e1272c9e%40group.calendar.google.com&ctz=Asia%2FBangkok" style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ อย่าลืมใส่ LIFF ID ของหน้าปฏิทิน และ GAS URL นะครับ
+        const LIFF_ID = "2009404765-h0fCn2iC"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
+        let userUid = "";
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            userUid = (await liff.getProfile()).userId;
+            
+            // แวะตรวจสิทธิ์ก่อน
+            checkUser(userUid);
+        }
+
+        async function checkUser(userId) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${userId}`);
+                const data = await res.json();
+                
+                if (data.status === "success") {
+                    // 🟢 ถ้าเป็นคนขับ Active ให้ซ่อนตัวโหลด แล้วโชว์ปฏิทิน
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('calendarContent').style.display = 'flex';
+                    
+                } else if (data.status === "suspended") {
+                    // 🚫 ถ้าถูกระงับ (InActive) ให้โชว์หน้าต่างสีแดง
+                    document.getElementById('loader').innerHTML = `
+                        <div class="container pb-5 mt-4">
+                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #dc3545; text-align: center;">
+                                <h4 class="fw-bold text-danger mb-3">🚫 บัญชีถูกระงับ</h4>
+                                <p class="text-muted mb-0">ผู้ใช้ถูกระงับการใช้งาน<br>กรุณาติดต่อแอดมินหรือผู้ดูแลระบบครับ</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // 🟡 ถ้าเป็นคนใหม่ ให้โชว์หน้าต่างสีเหลือง ไล่ไปก๊อปปี้ UID ที่หน้าส่งยอด
+                    document.getElementById('loader').innerHTML = `
+                        <div class="container pb-5 mt-4">
+                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #ffc107; text-align: center;">
+                                <h4 class="fw-bold text-warning mb-3">⚠️ ไม่มีสิทธิ์เข้าใช้งาน</h4>
+                                <p class="text-muted mb-0">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <b>"ส่งยอดรายวัน"</b> <br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินครับ</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch(err) {
+                document.getElementById('loader').innerHTML = `<p class="text-danger fw-bold text-center mt-4">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด</p>`;
+            }
+        }
+
+        window.onload = main;
+    </script>
+</body>
+</html>
