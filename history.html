@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ประวัติและแก้ไข - TaxiEV</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         :root { --brand-dark: #13444B; --brand-light: #4EB1B3; --bg-light: #f4f7f6; }
         body { background-color: var(--bg-light); font-family: 'Kanit', sans-serif; padding-bottom: 30px;}
@@ -104,17 +104,48 @@
         </form>
     </div>
 
+    <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center" style="border-radius: 20px; border:none;">
+                <div class="modal-body p-4" id="modalBody">
+                    </div>
+            </div>
+        </div>
+    </div>
+
 <script>
         // ⚠️ ใส่ LIFF ID และ GAS URL ของคุณ
         const LIFF_ID = "2009404765-nezOU6Ri"; 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxG-5fGF6MFCVeL6i_mo8OL8Nz3uKn5gtEQeeJxbueIBb_Cb3r8d6Ilan9Nxz87UT9onw/exec";
         let uid = ""; let currentHistoryData = []; 
+        let statusModal; // ตัวแปรสำหรับ Popup
 
         async function main() {
+            // โหลด Popup เตรียมไว้
+            statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+            
             await liff.init({ liffId: LIFF_ID });
             if (!liff.isLoggedIn()) { liff.login(); return; }
             uid = (await liff.getProfile()).userId;
             checkUser(uid);
+        }
+
+        // 🌟 ฟังก์ชันแสดง Popup สวยๆ แทน alert()
+        function showStatus(type, message) {
+            const modalBody = document.getElementById('modalBody');
+            let icon = "", color = "";
+            
+            if (type === "success") { icon = '<h1 style="font-size: 3.5rem; color: #198754; margin-bottom: 0;">✅</h1>'; color = "text-success"; }
+            else if (type === "warning") { icon = '<h1 style="font-size: 3.5rem; color: #ffc107; margin-bottom: 0;">⚠️</h1>'; color = "text-warning"; }
+            else if (type === "error") { icon = '<h1 style="font-size: 3.5rem; color: #dc3545; margin-bottom: 0;">❌</h1>'; color = "text-danger"; }
+            else if (type === "loading") { icon = '<div class="spinner-border text-info my-3" role="status" style="width: 3rem; height: 3rem;"></div>'; color = "text-dark"; }
+
+            let content = `${icon}<h5 class="fw-bold mt-3 ${color}">${message}</h5>`;
+            if (type !== "loading") {
+                content += `<button type="button" class="btn btn-outline-secondary btn-sm mt-3 px-4" data-bs-dismiss="modal">ตกลง</button>`;
+            }
+            modalBody.innerHTML = content;
+            statusModal.show();
         }
 
         async function checkUser(userId) {
@@ -127,28 +158,12 @@
                 } else if (data.status === "suspended") {
                     document.getElementById('editSection').style.display = 'none';
                     document.getElementById('slipSection').style.display = 'none';
-                    document.getElementById('historyList').innerHTML = `
-                        <div class="container pb-5">
-                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 40px; border-top: 5px solid #dc3545; text-align: center;">
-                                <h4 class="fw-bold text-danger mb-3">🚫 บัญชีถูกระงับ</h4>
-                                <p class="text-muted mb-0">ผู้ใช้ถูกระงับการใช้งาน<br>กรุณาติดต่อแอดมินหรือผู้ดูแลระบบครับ</p>
-                            </div>
-                        </div>
-                    `;
+                    document.getElementById('historyList').innerHTML = `<div class="container pb-5"><div style="background: white; border-radius: 15px; padding: 25px; text-align: center;"><h4 class="fw-bold text-danger">🚫 บัญชีถูกระงับ</h4></div></div>`;
                 } else {
-                    document.getElementById('editSection').style.display = 'none';
-                    document.getElementById('slipSection').style.display = 'none';
-                    document.getElementById('historyList').innerHTML = `
-                        <div class="container pb-5">
-                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 40px; border-top: 5px solid #ffc107; text-align: center;">
-                                <h4 class="fw-bold text-warning mb-3">⚠️ ไม่มีสิทธิ์เข้าใช้งาน</h4>
-                                <p class="text-muted mb-0">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <b>"ส่งยอดรายวัน"</b> <br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินครับ</p>
-                            </div>
-                        </div>
-                    `;
+                    document.getElementById('historyList').innerHTML = `<div class="container pb-5"><div style="background: white; border-radius: 15px; padding: 25px; text-align: center;"><h4 class="fw-bold text-warning">⚠️ ไม่มีสิทธิ์เข้าใช้งาน</h4></div></div>`;
                 }
             } catch(err) {
-                alert("เชื่อมต่อขัดข้อง");
+                showStatus("error", "เชื่อมต่อระบบขัดข้อง");
             }
         }
 
@@ -160,7 +175,7 @@
                     currentHistoryData = data.history; renderHistory(currentHistoryData);
                 } else { document.getElementById('cardsContainer').innerHTML = "<p class='text-center text-muted mt-5'>ยังไม่มีประวัติการส่งยอดครับ</p>"; }
                 document.getElementById('loader').style.display = 'none';
-            } catch(err) { alert("โหลดประวัติไม่สำเร็จ"); }
+            } catch(err) { showStatus("error", "โหลดประวัติไม่สำเร็จ"); }
         }
 
         function renderHistory(historyArray) {
@@ -194,7 +209,6 @@
             });
         }
 
-        // --- เปิด/ปิด ฟอร์ม ---
         function closeForms() { 
             document.getElementById('editSection').style.display = 'none'; 
             document.getElementById('slipSection').style.display = 'none'; 
@@ -226,7 +240,7 @@
             document.getElementById('slipRow').value = item.row; 
             document.getElementById('slipTimestamp').value = item.timestamp;
             document.getElementById('slipDateDisplay').innerText = dateStr;
-            document.getElementById('slip_image').value = ""; // เคลียร์รูปเก่า
+            document.getElementById('slip_image').value = ""; 
             
             document.getElementById('historyList').style.display = 'none'; 
             document.getElementById('editSection').style.display = 'none';
@@ -234,7 +248,6 @@
             window.scrollTo(0, 0); 
         }
 
-        // 🌟 ฟังก์ชันตัวช่วยแปลงไฟล์รูปเป็นรหัสข้อความ
         function getBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -248,16 +261,17 @@
         document.getElementById('editForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitEdit');
-
             const maoValue = Number(document.getElementById('e_mao').value) || 0;
             const maoLoc = document.getElementById('e_mao_location').value.trim();
+            
             if (maoValue > 0 && maoLoc === "") {
-                alert("⚠️ กรุณาระบุ 'สถานที่เหมา' ด้วยครับ (เนื่องจากมีการกรอกยอดงานเหมา)");
-                document.getElementById('e_mao_location').focus();
+                showStatus("warning", "กรุณาระบุ 'สถานที่เหมา' ด้วยครับ");
                 return;
             }
 
-            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
+            btn.disabled = true; 
+            showStatus("loading", "กำลังบันทึกยอดแก้ไข...");
+            
             const payload = {
                 status: "แก้ไขยอด", uid: uid, row: document.getElementById('editRow').value, original_timestamp: document.getElementById('editTimestamp').value,
                 grab: document.getElementById('e_grab').value, bolt: document.getElementById('e_bolt').value, maxim: document.getElementById('e_maxim').value,
@@ -267,10 +281,22 @@
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await res.json();
-                if (result.status === "success") { alert("อัปเดตยอดสำเร็จ!"); closeForms(); document.getElementById('loader').style.display = 'block'; document.getElementById('cardsContainer').innerHTML = ""; fetchHistory(); } 
-                else { alert("แจ้งเตือน: " + result.message); }
-            } catch (err) { alert("เชื่อมต่อขัดข้อง"); }
-            btn.disabled = false; btn.innerText = "บันทึกยอดใหม่";
+                
+                statusModal.hide(); // ปิด popup โหลด
+                if (result.status === "success") { 
+                    showStatus("success", "อัปเดตยอดสำเร็จ!");
+                    closeForms(); 
+                    document.getElementById('loader').style.display = 'block'; 
+                    document.getElementById('cardsContainer').innerHTML = ""; 
+                    fetchHistory(); 
+                } else { 
+                    showStatus("error", "เกิดข้อผิดพลาด:<br>" + result.message); 
+                }
+            } catch (err) { 
+                statusModal.hide();
+                showStatus("error", "เชื่อมต่อขัดข้อง"); 
+            }
+            btn.disabled = false;
         };
 
         // --- Submit ส่งสลิป ---
@@ -280,15 +306,16 @@
             const fileInput = document.getElementById('slip_image');
             
             if (!fileInput.files || fileInput.files.length === 0) {
-                alert("⚠️ กรุณาเลือกรูปภาพสลิปก่อนครับ");
+                showStatus("warning", "กรุณาเลือกรูปภาพสลิปก่อนครับ");
                 return;
             }
 
-            btn.disabled = true; btn.innerText = "กำลังอัปโหลดรูปภาพ...";
+            btn.disabled = true; 
+            showStatus("loading", "กำลังอัปโหลดรูปภาพ...<br><small>อาจใช้เวลาสักครู่</small>");
             
             try {
                 const file = fileInput.files[0];
-                const base64 = await getBase64(file); // แปลงรูป
+                const base64 = await getBase64(file); 
                 
                 const payload = {
                     status: "อัปโหลดสลิป", 
@@ -302,16 +329,18 @@
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await res.json();
                 
+                statusModal.hide(); // ปิด popup โหลด
                 if (result.status === "success") { 
-                    alert("✅ อัปโหลดสลิปสำเร็จ! แอดมินได้รับสลิปของคุณแล้วครับ"); 
+                    showStatus("success", "ส่งสลิปสำเร็จ!<br><small class='text-muted'>แอดมินได้รับข้อมูลแล้วครับ</small>"); 
                     closeForms(); 
                 } else { 
-                    alert("แจ้งเตือน: " + result.message); 
+                    showStatus("error", "เกิดข้อผิดพลาด:<br><small>" + result.message + "</small>"); 
                 }
             } catch (err) { 
-                alert("เชื่อมต่อขัดข้อง หรือไฟล์รูปภาพอาจมีขนาดใหญ่เกินไปครับ"); 
+                statusModal.hide();
+                showStatus("error", "อัปโหลดไม่สำเร็จ<br><small class='text-muted'>ไฟล์อาจมีขนาดใหญ่เกินไป หรืออินเทอร์เน็ตขัดข้อง</small>"); 
             }
-            btn.disabled = false; btn.innerText = "ส่งสลิปยืนยัน";
+            btn.disabled = false;
         };
 
         window.onload = main;
