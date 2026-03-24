@@ -11,12 +11,13 @@
         body { background-color: var(--bg-light); font-family: 'Kanit', sans-serif; padding-bottom: 30px;}
         .brand-header { background: linear-gradient(135deg, var(--brand-dark), var(--brand-light)); color: white; padding: 25px 20px 35px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .card-custom { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: none; margin-bottom: 12px; }
-        .btn-edit { background-color: #ffc107; color: #000; font-weight: bold; border-radius: 10px; font-size: 0.85rem;}
+        .btn-edit { background-color: #ffc107; color: #000; font-weight: bold; border-radius: 8px; font-size: 0.85rem; border: none;}
+        .btn-slip { background-color: #17a2b8; color: white; font-weight: bold; border-radius: 8px; font-size: 0.85rem; border: none;}
         .btn-brand { background-color: var(--brand-dark); color: white; font-weight: bold; border-radius: 10px; padding: 12px; width: 100%; border:none;}
         .history-date { font-size: 1.05rem; font-weight: bold; color: var(--brand-dark); }
         .badge-edit { font-size: 0.7rem; background-color: #dc3545; color: white; padding: 3px 6px; border-radius: 5px;}
         
-        #editSection { display: none; background: var(--bg-light); padding: 15px; position: absolute; top: 0; left: 0; right: 0; min-height: 100vh; z-index: 1000;}
+        #editSection, #slipSection { display: none; background: var(--bg-light); padding: 15px; position: absolute; top: 0; left: 0; right: 0; min-height: 100vh; z-index: 1000;}
         .form-section { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid var(--brand-light);}
         .form-label { font-weight: bold; font-size: 0.85rem; color: var(--brand-dark); margin-bottom: 5px; }
         .form-control { border-radius: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; }
@@ -38,10 +39,10 @@
     <div id="editSection">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold mb-0" style="color: var(--brand-dark);">✏️ แก้ไขยอด</h5>
-            <button class="btn btn-outline-danger btn-sm" onclick="closeEditForm()">ยกเลิก</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="closeForms()">ยกเลิก</button>
         </div>
         
-        <div class="alert alert-info text-center py-2 mb-3" style="background-color: white; border-color: var(--brand-light); color: var(--brand-dark);">
+        <div class="alert alert-warning text-center py-2 mb-3" style="background-color: white; border-color: #ffc107; color: var(--brand-dark);">
             <strong>วันที่: <span id="editDateDisplay"></span></strong>
         </div>
 
@@ -78,6 +79,31 @@
             <button type="submit" id="btnSubmitEdit" class="btn btn-brand mt-2 shadow-sm">บันทึกยอดใหม่</button>
         </form>
     </div>
+
+    <div id="slipSection">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0" style="color: var(--brand-dark);">📸 ส่งสลิปโอนเงิน</h5>
+            <button class="btn btn-outline-danger btn-sm" onclick="closeForms()">ยกเลิก</button>
+        </div>
+        
+        <div class="alert alert-info text-center py-2 mb-3" style="background-color: white; border-color: #17a2b8; color: var(--brand-dark);">
+            <strong>ยอดของวันที่: <span id="slipDateDisplay"></span></strong>
+        </div>
+
+        <form id="slipForm">
+            <input type="hidden" id="slipRow">
+            <input type="hidden" id="slipTimestamp">
+
+            <div class="form-section" style="border-left-color: #17a2b8;">
+                <label for="slip_image" class="form-label text-info fw-bold mb-2">อัปโหลดรูปภาพสลิป</label>
+                <input type="file" class="form-control" id="slip_image" accept="image/*" required>
+                <small class="text-muted mt-2 d-block">ระบบจะส่งรูปภาพนี้ให้แอดมินเพื่อยืนยันการโอนเงินของวันดังกล่าว</small>
+            </div>
+            
+            <button type="submit" id="btnSubmitSlip" class="btn btn-brand mt-2 shadow-sm" style="background-color: #17a2b8;">ส่งสลิปยืนยัน</button>
+        </form>
+    </div>
+
 <script>
         // ⚠️ ใส่ LIFF ID และ GAS URL ของคุณ
         const LIFF_ID = "2009404765-nezOU6Ri"; 
@@ -88,13 +114,10 @@
             await liff.init({ liffId: LIFF_ID });
             if (!liff.isLoggedIn()) { liff.login(); return; }
             uid = (await liff.getProfile()).userId;
-            
-            // แวะตรวจสิทธิ์ก่อน
             checkUser(uid);
         }
 
-
-    async function checkUser(userId) {
+        async function checkUser(userId) {
             try {
                 const res = await fetch(`${GAS_URL}?uid=${userId}`);
                 const data = await res.json();
@@ -102,8 +125,8 @@
                 if (data.status === "success") {
                     fetchHistory();
                 } else if (data.status === "suspended") {
-                    // 🚫 บัญชีถูกระงับ (InActive)
                     document.getElementById('editSection').style.display = 'none';
+                    document.getElementById('slipSection').style.display = 'none';
                     document.getElementById('historyList').innerHTML = `
                         <div class="container pb-5">
                             <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 40px; border-top: 5px solid #dc3545; text-align: center;">
@@ -113,8 +136,8 @@
                         </div>
                     `;
                 } else {
-                    // 🟡 คนใหม่ ไล่ไปหน้าส่งยอด
                     document.getElementById('editSection').style.display = 'none';
+                    document.getElementById('slipSection').style.display = 'none';
                     document.getElementById('historyList').innerHTML = `
                         <div class="container pb-5">
                             <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 40px; border-top: 5px solid #ffc107; text-align: center;">
@@ -127,10 +150,6 @@
             } catch(err) {
                 alert("เชื่อมต่อขัดข้อง");
             }
-        }
-
-        function copyMyUID(uidText) {
-            navigator.clipboard.writeText(uidText).then(() => { alert('คัดลอก UID สำเร็จ! นำไปวางในแชทให้แอดมินได้เลยครับ'); }).catch(err => { alert('ไม่สามารถคัดลอกได้อัตโนมัติ กรุณาคลุมดำและคัดลอกเองครับ'); });
         }
 
         async function fetchHistory() {
@@ -155,7 +174,10 @@
                     <div class="card-custom">
                         <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
                             <span class="history-date">${dateStr} ${editBadge}</span>
-                            <button class="btn btn-sm btn-edit px-3" onclick="openEditForm(${index}, '${dateStr}')">แก้ไข</button>
+                            <div>
+                                <button class="btn btn-sm btn-slip px-2 me-1" onclick="openSlipForm(${index}, '${dateStr}')">📸 แนบสลิป</button>
+                                <button class="btn btn-sm btn-edit px-3" onclick="openEditForm(${index}, '${dateStr}')">แก้ไข</button>
+                            </div>
                         </div>
                         <div class="row text-center mt-2">
                             <div class="col-6 border-end">
@@ -163,13 +185,20 @@
                                 <strong class="fs-6 text-dark">${item.totalRev.toLocaleString()} ฿</strong>
                             </div>
                             <div class="col-6">
-                                <small class="text-muted d-block">คงเหลือ</small>
-                                <strong class="fs-6" style="color: var(--brand-light);">${item.driverNet.toLocaleString()} ฿</strong>
+                                <small class="text-muted d-block">โอนบริษัท</small>
+                                <strong class="fs-6" style="color: var(--brand-light);">${item.rentalFee ? item.rentalFee.toLocaleString() : '0'} ฿</strong>
                             </div>
                         </div>
                     </div>`;
                 container.innerHTML += card;
             });
+        }
+
+        // --- เปิด/ปิด ฟอร์ม ---
+        function closeForms() { 
+            document.getElementById('editSection').style.display = 'none'; 
+            document.getElementById('slipSection').style.display = 'none'; 
+            document.getElementById('historyList').style.display = 'block'; 
         }
 
         function openEditForm(index, dateStr) {
@@ -186,11 +215,36 @@
             } else {
                 document.getElementById('airportSection').style.display = 'block'; document.getElementById('e_airport').value = item.airport_calc || "";
             }
-            document.getElementById('historyList').style.display = 'none'; document.getElementById('editSection').style.display = 'block'; window.scrollTo(0, 0); 
+            document.getElementById('historyList').style.display = 'none'; 
+            document.getElementById('slipSection').style.display = 'none';
+            document.getElementById('editSection').style.display = 'block'; 
+            window.scrollTo(0, 0); 
         }
 
-        function closeEditForm() { document.getElementById('editSection').style.display = 'none'; document.getElementById('historyList').style.display = 'block'; }
+        function openSlipForm(index, dateStr) {
+            const item = currentHistoryData[index]; 
+            document.getElementById('slipRow').value = item.row; 
+            document.getElementById('slipTimestamp').value = item.timestamp;
+            document.getElementById('slipDateDisplay').innerText = dateStr;
+            document.getElementById('slip_image').value = ""; // เคลียร์รูปเก่า
+            
+            document.getElementById('historyList').style.display = 'none'; 
+            document.getElementById('editSection').style.display = 'none';
+            document.getElementById('slipSection').style.display = 'block'; 
+            window.scrollTo(0, 0); 
+        }
 
+        // 🌟 ฟังก์ชันตัวช่วยแปลงไฟล์รูปเป็นรหัสข้อความ
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]); 
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // --- Submit แก้ไขยอด ---
         document.getElementById('editForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitEdit');
@@ -213,13 +267,54 @@
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await res.json();
-                if (result.status === "success") { alert("อัปเดตยอดสำเร็จ!"); closeEditForm(); document.getElementById('loader').style.display = 'block'; document.getElementById('cardsContainer').innerHTML = ""; fetchHistory(); } 
+                if (result.status === "success") { alert("อัปเดตยอดสำเร็จ!"); closeForms(); document.getElementById('loader').style.display = 'block'; document.getElementById('cardsContainer').innerHTML = ""; fetchHistory(); } 
                 else { alert("แจ้งเตือน: " + result.message); }
             } catch (err) { alert("เชื่อมต่อขัดข้อง"); }
             btn.disabled = false; btn.innerText = "บันทึกยอดใหม่";
         };
+
+        // --- Submit ส่งสลิป ---
+        document.getElementById('slipForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitSlip');
+            const fileInput = document.getElementById('slip_image');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("⚠️ กรุณาเลือกรูปภาพสลิปก่อนครับ");
+                return;
+            }
+
+            btn.disabled = true; btn.innerText = "กำลังอัปโหลดรูปภาพ...";
+            
+            try {
+                const file = fileInput.files[0];
+                const base64 = await getBase64(file); // แปลงรูป
+                
+                const payload = {
+                    status: "อัปโหลดสลิป", 
+                    uid: uid, 
+                    row: document.getElementById('slipRow').value, 
+                    original_timestamp: document.getElementById('slipTimestamp').value,
+                    slip_base64: base64,
+                    slip_name: file.name
+                };
+
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                
+                if (result.status === "success") { 
+                    alert("✅ อัปโหลดสลิปสำเร็จ! แอดมินได้รับสลิปของคุณแล้วครับ"); 
+                    closeForms(); 
+                } else { 
+                    alert("แจ้งเตือน: " + result.message); 
+                }
+            } catch (err) { 
+                alert("เชื่อมต่อขัดข้อง หรือไฟล์รูปภาพอาจมีขนาดใหญ่เกินไปครับ"); 
+            }
+            btn.disabled = false; btn.innerText = "ส่งสลิปยืนยัน";
+        };
+
         window.onload = main;
     </script>
-
 </body>
 </html>
