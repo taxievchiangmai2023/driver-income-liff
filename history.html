@@ -80,7 +80,7 @@
         </form>
     </div>
 
-    <div id="slipSection">
+<div id="slipSection">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold mb-0" style="color: var(--brand-dark);">📸 ส่งสลิปโอนเงิน</h5>
             <button class="btn btn-outline-danger btn-sm" onclick="closeForms()">ยกเลิก</button>
@@ -93,6 +93,14 @@
         <form id="slipForm">
             <input type="hidden" id="slipRow">
             <input type="hidden" id="slipTimestamp">
+
+            <div class="form-section" style="border-left-color: #6610f2;">
+                <label class="form-label fw-bold" style="color: #6610f2;">🏦 โอนเข้าบัญชีธนาคาร:</label>
+                <select id="slip_account" class="form-control mb-2">
+                    <option value="ACCOUNT_A">บัญชีหลัก (หจก. โอเค...)</option>
+                    <option value="ACCOUNT_B">บัญชีที่ค่ายาง (นาย เด่นภูมิ )</option>
+                </select>
+            </div>
 
             <div class="form-section" style="border-left-color: #17a2b8;">
                 <label for="slip_image" class="form-label text-info fw-bold mb-2">อัปโหลดรูปภาพสลิป</label>
@@ -178,23 +186,42 @@
             } catch(err) { showStatus("error", "โหลดประวัติไม่สำเร็จ"); }
         }
 
+        // --- 🌟 อัปเดต 1: ระบบกรองซ่อนสลิป และโชว์ยอดขาด ---
         function renderHistory(historyArray) {
             const container = document.getElementById('cardsContainer');
             container.innerHTML = "";
+            let visibleCount = 0; // ตัวนับว่ามียอดให้โชว์ไหม
+
             historyArray.forEach((item, index) => {
-                // 🌟 ปรับ Badge แก้ไขให้อยู่บรรทัดใหม่ สวยงามไม่เบียดวันที่
+                const slipStatusStr = item.slipStatus || "";
+
+                // 🛑 เงื่อนไขที่ 1: ถ้ายอดนี้ "ตรวจสอบแล้ว ✅" ให้ ข้ามไปเลย (ซ่อน)
+                if (slipStatusStr.includes("ตรวจสอบแล้ว ✅")) {
+                    return; 
+                }
+
+                visibleCount++; // นับว่ามียอดค้าง
+
                 const editBadge = item.editCount > 0 ? `<div class="mt-1"><span class="badge bg-danger shadow-sm" style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;">✏️ แก้ไขครั้งที่ ${item.editCount}</span></div>` : "";
-                
                 const dateObj = new Date(item.date);
                 const dateStr = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-                
-                // 🌟 ดักจับค่า 0 หรือค่าว่าง
                 const totalAmount = item.totalRev ? Number(item.totalRev).toLocaleString() : '0';
                 const transferAmount = item.rentalFee ? Number(item.rentalFee).toLocaleString() : '0';
 
+                // 🛑 เงื่อนไขที่ 2: ถ้า "โอนขาด" ให้สร้างกล่องเตือนสีแดง
+                let warningHtml = "";
+                if (slipStatusStr.includes("โอนขาด ❌")) {
+                    // ดึงข้อความในวงเล็บมาโชว์ เช่น (โอน 500 / ขาด 467)
+                    let extractMsg = slipStatusStr.split('(')[1] ? '(' + slipStatusStr.split('(')[1] : slipStatusStr;
+                    warningHtml = `
+                    <div class="alert alert-danger py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px;">
+                        ⚠️ <strong>ยอดเงินไม่ครบ!</strong> รบกวนโอนเพิ่มอีก<br>${extractMsg}
+                    </div>`;
+                }
+
                 const card = `
                     <div class="card-custom">
-                        <div class="d-flex justify-content-between align-items-start mb-3 border-bottom pb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2 border-bottom pb-2">
                             <div>
                                 <span class="history-date d-block" style="line-height: 1.2;">${dateStr}</span>
                                 ${editBadge}
@@ -214,10 +241,68 @@
                                 <strong class="fs-5" style="color: var(--brand-light);">${transferAmount} ฿</strong>
                             </div>
                         </div>
-                    </div>`;
+                        ${warningHtml} </div>`;
                 container.innerHTML += card;
             });
+
+            // ถ้าไม่มีอะไรให้โชว์เลย (เคลียร์สลิปครบหมดแล้ว)
+            if (visibleCount === 0) {
+                container.innerHTML = `
+                <div class="text-center mt-5">
+                    <h1 style="font-size: 4rem;">🎉</h1>
+                    <h5 class="fw-bold text-success mt-3">เยี่ยมมาก!</h5>
+                    <p class="text-muted">คุณไม่มีค้างส่งสลิปย้อนหลังแล้วครับ</p>
+                </div>`;
+            }
         }
+
+        // --- 🌟 อัปเดต 2: ตอนกดส่งสลิป ให้ส่งประเภทบัญชีไปด้วย ---
+        document.getElementById('slipForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitSlip');
+            const fileInput = document.getElementById('slip_image');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showStatus("warning", "กรุณาเลือกรูปภาพสลิปก่อนครับ");
+                return;
+            }
+
+            btn.disabled = true; 
+            showStatus("loading", "กำลังอัปโหลดรูปภาพ...<br><small>อาจใช้เวลาสักครู่</small>");
+            
+            try {
+                const file = fileInput.files[0];
+                const base64 = await getBase64(file); 
+                
+                const payload = {
+                    status: "อัปโหลดสลิป", 
+                    uid: uid, 
+                    row: document.getElementById('slipRow').value, 
+                    original_timestamp: document.getElementById('slipTimestamp').value,
+                    account_type: document.getElementById('slip_account').value, // 🌟 เพิ่มบรรทัดนี้
+                    slip_base64: base64,
+                    slip_name: file.name
+                };
+
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                
+                statusModal.hide();
+                if (result.status === "success") { 
+                    showStatus("success", "ส่งสลิปสำเร็จ!<br><small class='text-muted'>แอดมินได้รับข้อมูลแล้วครับ</small>"); 
+                    closeForms(); 
+                    document.getElementById('loader').style.display = 'block'; 
+                    document.getElementById('cardsContainer').innerHTML = ""; 
+                    fetchHistory(); // โหลดข้อมูลใหม่ (ยอดที่ผ่านแล้วจะหายไปเอง)
+                } else { 
+                    showStatus("error", "เกิดข้อผิดพลาด:<br><small>" + result.message + "</small>"); 
+                }
+            } catch (err) { 
+                statusModal.hide();
+                showStatus("error", "อัปโหลดไม่สำเร็จ<br><small class='text-muted'>ไฟล์อาจมีขนาดใหญ่เกินไป หรืออินเทอร์เน็ตขัดข้อง</small>"); 
+            }
+            btn.disabled = false;
+        };
     
         function closeForms() { 
             document.getElementById('editSection').style.display = 'none'; 
