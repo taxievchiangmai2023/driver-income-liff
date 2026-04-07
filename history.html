@@ -184,6 +184,7 @@
             } catch(err) { showStatus("error", "โหลดประวัติไม่สำเร็จ"); }
         }
 
+        // --- 🌟 อัปเดต: ระบบกรองซ่อนสลิป และโชว์ยอดแจ้งเตือนครบทุกกรณี ---
         function renderHistory(historyArray) {
             const container = document.getElementById('cardsContainer');
             container.innerHTML = "";
@@ -192,6 +193,7 @@
             historyArray.forEach((item, index) => {
                 const slipStatusStr = item.slipStatus || "";
 
+                // 🛑 ถ้ายอดนี้ "ตรวจสอบแล้ว ✅" ให้ ข้ามไปเลย (ซ่อน)
                 if (slipStatusStr.includes("ตรวจสอบแล้ว ✅")) {
                     return; 
                 }
@@ -204,13 +206,18 @@
                 const totalAmount = item.totalRev ? Number(item.totalRev).toLocaleString() : '0';
                 const transferAmount = item.rentalFee ? Number(item.rentalFee).toLocaleString() : '0';
 
+                // 🌟🌟🌟 เพิ่มการเช็คสถานะสลิปทุกกรณี 🌟🌟🌟
                 let warningHtml = "";
                 if (slipStatusStr.includes("โอนขาด ❌")) {
                     let extractMsg = slipStatusStr.split('(')[1] ? '(' + slipStatusStr.split('(')[1] : slipStatusStr;
-                    warningHtml = `
-                    <div class="alert alert-danger py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px;">
-                        ⚠️ <strong>ยอดเงินไม่ครบ!</strong> รบกวนโอนเพิ่มอีก<br>${extractMsg}
-                    </div>`;
+                    warningHtml = `<div class="alert alert-danger py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px;">⚠️ <strong>ยอดเงินไม่ครบ!</strong> รบกวนโอนเพิ่มอีก<br>${extractMsg}</div>`;
+                } else if (slipStatusStr.includes("ผิดบัญชี ❌")) {
+                    let extractMsg = slipStatusStr.split('(')[1] ? '(' + slipStatusStr.split('(')[1] : slipStatusStr;
+                    warningHtml = `<div class="alert alert-danger py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px;">⚠️ <strong>โอนผิดบัญชี!</strong><br>${extractMsg}</div>`;
+                } else if (slipStatusStr.includes("สลิปซ้ำ ❌")) {
+                    warningHtml = `<div class="alert alert-danger py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px;">⚠️ <strong>สลิปซ้ำ!</strong> (รูปนี้ถูกใช้งานไปแล้ว)</div>`;
+                } else if (slipStatusStr.includes("ตรวจสอบด้วยตา ⚠️")) {
+                    warningHtml = `<div class="alert alert-warning py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px;">⏳ <strong>สแกนไม่ติด</strong> รอแอดมินตรวจสอบครับ</div>`;
                 }
 
                 const card = `
