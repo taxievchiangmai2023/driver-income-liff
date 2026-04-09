@@ -208,7 +208,12 @@
 
                 // 🌟🌟🌟 เพิ่มการเช็คสถานะสลิปทุกกรณี 🌟🌟🌟
                 let warningHtml = "";
-                if (slipStatusStr.includes("โอนขาด ❌")) {
+                
+                // 🌟 เช็คกรณีที่ยังไม่ได้แนบสลิป (สถานะว่างเปล่า)
+                if (slipStatusStr.trim() === "") {
+                    warningHtml = `<div class="alert alert-secondary py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px; border: 1px dashed #6c757d; background-color: #f8f9fa;">⏳ <strong>ยังไม่ได้แนบสลิป</strong><br>รบกวนกดปุ่ม 📸 แนบสลิปด้านบนครับ</div>`;
+                } 
+                else if (slipStatusStr.includes("โอนขาด ❌")) {
                     let extractMsg = slipStatusStr.split('(')[1] ? '(' + slipStatusStr.split('(')[1] : slipStatusStr;
                     warningHtml = `<div class="alert alert-danger py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px;">⚠️ <strong>ยอดเงินไม่ครบ!</strong> รบกวนโอนเพิ่มอีก<br>${extractMsg}</div>`;
                 } else if (slipStatusStr.includes("ผิดบัญชี ❌")) {
@@ -238,7 +243,7 @@
                                 <strong class="fs-5 text-dark">${totalAmount} ฿</strong>
                             </div>
                             <div class="col-6">
-                                <small class="text-muted d-block mb-1">ยอดโอนบริษัท</small>
+                                <small class="text-muted d-block mb-1">ยอดที่ต้องโอน</small>
                                 <strong class="fs-5" style="color: var(--brand-light);">${transferAmount} ฿</strong>
                             </div>
                         </div>
