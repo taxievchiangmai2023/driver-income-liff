@@ -184,16 +184,15 @@
             } catch(err) { showStatus("error", "โหลดประวัติไม่สำเร็จ"); }
         }
 
-        // --- 🌟 อัปเดต: ระบบกรองซ่อนสลิป และโชว์ยอดแจ้งเตือนครบทุกกรณี ---
+// --- 🌟 อัปเดต: ปรับปรุงความเร็วการ Render หน้าจอ ---
         function renderHistory(historyArray) {
             const container = document.getElementById('cardsContainer');
-            container.innerHTML = "";
             let visibleCount = 0; 
+            let htmlContent = ""; // 🌟 ใช้ตัวแปรเก็บ HTML ก่อน เพื่อลดการวาดหน้าจอซ้ำซ้อน
 
             historyArray.forEach((item, index) => {
                 const slipStatusStr = item.slipStatus || "";
 
-                // 🛑 ถ้ายอดนี้ "ตรวจสอบแล้ว ✅" ให้ ข้ามไปเลย (ซ่อน)
                 if (slipStatusStr.includes("ตรวจสอบแล้ว ✅")) {
                     return; 
                 }
@@ -206,10 +205,8 @@
                 const totalAmount = item.totalRev ? Number(item.totalRev).toLocaleString() : '0';
                 const transferAmount = item.rentalFee ? Number(item.rentalFee).toLocaleString() : '0';
 
-                // 🌟🌟🌟 เพิ่มการเช็คสถานะสลิปทุกกรณี 🌟🌟🌟
                 let warningHtml = "";
                 
-                // 🌟 เช็คกรณีที่ยังไม่ได้แนบสลิป (สถานะว่างเปล่า)
                 if (slipStatusStr.trim() === "") {
                     warningHtml = `<div class="alert alert-secondary py-1 px-2 mt-2 mb-0 text-center" style="font-size: 0.8rem; border-radius: 8px; border: 1px dashed #6c757d; background-color: #f8f9fa;">⏳ <strong>ยังไม่ได้แนบสลิป</strong><br>รบกวนกดปุ่ม 📸 แนบสลิปด้านบนครับ</div>`;
                 } 
@@ -249,19 +246,24 @@
                         </div>
                         ${warningHtml} 
                     </div>`;
-                container.innerHTML += card;
+                
+                htmlContent += card; // 🌟 เก็บสะสม HTML ไว้ในตัวแปร
             });
 
             if (visibleCount === 0) {
-                container.innerHTML = `
+                htmlContent = `
                 <div class="text-center mt-5">
                     <h1 style="font-size: 4rem;">🎉</h1>
                     <h5 class="fw-bold text-success mt-3">เยี่ยมมาก!</h5>
                     <p class="text-muted">คุณไม่มีค้างส่งสลิปย้อนหลังแล้วครับ</p>
                 </div>`;
             }
+
+            // 🌟 นำ HTML ทั้งหมดไปแสดงผลในครั้งเดียว (เร็วขึ้นมาก)
+            container.innerHTML = htmlContent;
         }
 
+        // ... (ฟังก์ชัน getBase64, onSubmit ต่างๆ คงเดิม) ...
         document.getElementById('slipForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitSlip');
@@ -398,7 +400,8 @@
             btn.disabled = false;
         };
 
-        window.onload = main;
+        // 🌟 เปลี่ยนจาก window.onload เป็น DOMContentLoaded เพื่อให้เริ่มทำงานเร็วขึ้น
+        document.addEventListener("DOMContentLoaded", main);
     </script>
 </body>
 </html>
